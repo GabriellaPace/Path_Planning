@@ -23,5 +23,11 @@
     <ClInclude Include="Functions.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="ClassNode.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadMap.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -22,7 +22,9 @@
     <ClCompile Include="MODLite.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ClassNode.h" />
     <ClInclude Include="Functions.h" />
+    <ClInclude Include="ReadMap.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
