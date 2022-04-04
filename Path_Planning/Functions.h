@@ -7,8 +7,8 @@
 //#include <functional>
 //#include <vector>
 #include <cmath>
-
 #include <list>
+#include <string> // maybe only for debug ?
 
 float nonDom(float g, float rhs) {			// still considering single g and rhs
 	if (g >= rhs) {

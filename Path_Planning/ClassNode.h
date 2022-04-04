@@ -3,11 +3,10 @@
 
 class Node {			// Node = state in Koeing
 public:
-	////// common to all istances: //////
-	static float k_m;// = 0.0f;
+	////// common to all istances: //////  CAN'T BE USED OR READ OUTSIDE THIS CLASS!
+	static float k_m;// = 0.0f;  
 	static Node* ptrToStart;// = nullptr;
-	static std::list<Node*> allNodes;
-
+	static std::list<Node*> NodesList;
 	/////////////////////////////////////
 	char Name; // only for debug
 
@@ -54,13 +53,9 @@ public:
 		key.first = -1;
 		key.second = -1;
 		predecessor = nullptr;
-		
-		allNodes.push_front(this);
-	}
 
-	//~Node() {
-	//	allNodes.remove(this);
-	//}
+		NodesList.push_front(this);
+	}
 
 ////////////////////////////   sorting criteria for queue   /////////////////////////
 	bool operator > (const Node &N2) const {
@@ -115,13 +110,15 @@ public:
 		return h;
 	}
 
-
 //////////////////////////////////   debug Methods   ////////////////////////////////
 	//void print_NodeName() {
 	//	std::cout << Name;
 	//}
 
 	void print_NodeKey() {
-		std::cout << key.first << " , " << key.second << std::endl;
+		std::cout << Name << " : " << key.first << " , " << key.second << std::endl;
 	}
 };
+
+Node* Node::ptrToStart = nullptr;
+std::list<Node*> NodesList;
