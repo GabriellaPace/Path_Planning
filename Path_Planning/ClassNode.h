@@ -6,7 +6,7 @@ public:
 	////// common to all istances: //////  CAN'T BE USED OR READ OUTSIDE THIS CLASS!
 	static float k_m;// = 0.0f;  
 	static Node* ptrToStart;// = nullptr;
-	static std::list<Node*> NodesList;
+	static std::vector<Node> NodesList;
 	/////////////////////////////////////
 	char Name; // only for debug
 
@@ -54,7 +54,7 @@ public:
 		key.second = -1;
 		predecessor = nullptr;
 
-		NodesList.push_front(this);
+		NodesList.push_back(*this);
 	}
 
 ////////////////////////////   sorting criteria for queue   /////////////////////////
@@ -73,6 +73,7 @@ public:
 	}
 
 	//bool operator < (const Node &N2) const {
+	//	//bool result;
 	//	if (key.first < N2.key.first)
 	//		return true;
 	//	else if (key.first > N2.key.first)
@@ -80,7 +81,7 @@ public:
 	//	else { // key.first == N2.key.first
 	//		if (key.second < N2.key.second)
 	//			return true;
-	//		else // (key.second >= N2.key.second)
+	//		else // (key.second <= N2.key.second)
 	//			return false;
 	//	}
 	//}
@@ -121,4 +122,4 @@ public:
 };
 
 Node* Node::ptrToStart = nullptr;
-std::list<Node*> NodesList;
+//std::list<Node*> NodesList;
