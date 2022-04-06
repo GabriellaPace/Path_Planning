@@ -3,11 +3,12 @@
 
 class Node {			// Node = state in Koeing
 public:
-	////// common to all istances: //////  CAN'T BE USED OR READ OUTSIDE THIS CLASS!
-	static float k_m;// = 0.0f;  
-	static Node* ptrToStart;// = nullptr;
-	static std::vector<Node> NodesList;
-	/////////////////////////////////////
+	////// common to all istances: ////////////////////////
+	static std::vector<Node> NodesList; //def. in ReadMap.h
+	static float k_m;		//def. in MODLite.h
+	static int X_start;		//		"
+	static int Y_start;		//		"
+	/*---------------------------------------------------*/
 	char Name; // only for debug
 
 	int X;
@@ -19,7 +20,6 @@ public:
 	float g;
 	float rhs;
 	//float cost;
-	//float h;
 
 	std::pair<float, float> key;
 
@@ -37,7 +37,9 @@ public:
 		isGoal = isGoalNode;
 
 		if (isStartNode) {
-			ptrToStart = this;
+			//ptrToStart = this;
+			X_start = X;
+			Y_start = Y;
 		}
 
 
@@ -72,26 +74,6 @@ public:
 		}
 	}
 
-	//bool operator < (const Node &N2) const {
-	//	//bool result;
-	//	if (key.first < N2.key.first)
-	//		return true;
-	//	else if (key.first > N2.key.first)
-	//		return false;
-	//	else { // key.first == N2.key.first
-	//		if (key.second < N2.key.second)
-	//			return true;
-	//		else // (key.second <= N2.key.second)
-	//			return false;
-	//	}
-	//}
-	//bool operator == (const Node &N2) const {
-	//	if (key.first == N2.key.first  &&  key.second == N2.key.second)
-	//		return true;
-	//	else
-	//		return false;
-	//}
-
 /////////////////////////////////////   Methods   //////////////////////////////////
 	void calculateKey() {
 		key.second = nonDom(g, rhs);
@@ -100,10 +82,6 @@ public:
 
 
 	float heuristic() {
-		static Node startNode = *ptrToStart;
-		static int X_start = startNode.X;
-		static int Y_start = startNode.Y;
-
 		std::cout << "X and Y of start node: " << X_start << " , " << Y_start << std::endl;
 
 		float h = (float)sqrt(pow((X - X_start), 2.0f) + pow((Y - Y_start), 2.0f));    //pow(base, power)
@@ -120,6 +98,3 @@ public:
 		std::cout << Name << " : " << key.first << " , " << key.second << std::endl;
 	}
 };
-
-Node* Node::ptrToStart = nullptr;
-//std::list<Node*> NodesList;

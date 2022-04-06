@@ -4,7 +4,6 @@
 std::vector<Node> Node::NodesList;
 
 void ReadMap() {
-	//NodesList.clear();
 	Node n1('1', 0, 0, true, false);
 	Node n2('2', 1, 0, false, false);
 	Node n3('3', 2, 0, false, true);
@@ -15,8 +14,10 @@ void ReadMap() {
 			N.key.second = 0.0f;
 		}
 		else if (N.X == 1 && N.Y == 0) {
-			N.key.first = 1.0f;
-			N.key.second = 4.0f;
+			N.g = 1.0f;
+			N.rhs = 4.0f;
+			//N.key.first = 1.0f;
+			//N.key.second = 4.0f;
 		}
 		else if (N.X == 2 && N.Y == 0) {
 			N.key.first = 2.0f;
