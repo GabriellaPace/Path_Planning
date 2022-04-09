@@ -12,7 +12,7 @@
 #include <string> // maybe only for debug ?
 
 
-float nonDom(float g, float rhs) {			// still considering single g and rhs
+float nonDom(float g, float rhs) {			// nonDom = min		// still considering single g and rhs		
 	if (g <= rhs) {
 		std::cout << " g " << std::endl;
 		return g;

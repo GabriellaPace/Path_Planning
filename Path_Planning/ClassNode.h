@@ -93,6 +93,26 @@ public:
 		return h;
 	}
 
+	//void updateAdjacents() {
+	//	for (auto &N : AdjacentsList) {
+	//		update_rhs();
+	//	}
+	//}
+
+	//void update_rhs() {
+	//	min_rhs = rhs;
+	//	for (auto A : AdjacentsList) {
+	//		float d = (float)((sqrt(pow((X - X_start), 2.0f) + pow((Y - Y_start), 2.0f))) * 10);	//distance btw current node and selected adjacent node
+	//		float tmp_rhs = A.g + d;
+	//		if (tmp_rhs < min_rhs) {
+	//			min_rhs = tmp_rhs;
+	//			void* pred_ptr = *A;
+	//		}
+	//	}
+	//	rhs = min_rhs;
+	//	predecessor = pred_ptr;
+	//}
+
 //////////////////////////////////   debug Methods   ////////////////////////////////
 	void print_NodeKey() {
 		std::cout << "( "<< key.first <<" , "<< key.second <<" ) -> [" << X << "," << Y << "]" << std::endl;

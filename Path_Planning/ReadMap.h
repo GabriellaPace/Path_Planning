@@ -4,10 +4,10 @@
 std::vector<Node> Node::NodesList;
 
 void ReadMap() {
-	Node n1('1', 0, 0, start);
+	Node st('1', 0, 0, start);
 	Node n2('2', 1, 0, any);
 	Node n3('3', 2, 0, any);
 	Node n4('4', 0, 1, any);
 	Node n5('5', 1, 1, any);
-	Node n6('6', 2, 1, goal);
+	Node gl('6', 2, 1, goal);
 }
