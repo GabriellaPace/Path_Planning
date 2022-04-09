@@ -1,6 +1,11 @@
 #pragma once
 #include "Functions.h"
 
+enum NodeTypes {
+	start = 0, any = 1, goal = 2
+};
+
+
 class Node {			// Node = state in Koeing
 public:
 	////// common to all istances: ////////////////////////
@@ -14,8 +19,9 @@ public:
 	int X;
 	int Y;
 
-	bool isStart;
-	bool isGoal;
+	//bool isStart;
+	//bool isGoal;
+	NodeTypes nodeType;
 
 	float g;
 	float rhs;
@@ -28,27 +34,28 @@ public:
 ////////////////////////////////////   Constructors   /////////////////////////////////
 	Node() {}		// for pointers etc.
 
-	Node(char name, int x, int y, bool isStartNode, bool isGoalNode) {  // for actual nodes
+	Node(char name, int x, int y, NodeTypes flag) {  // for actual nodes
 		Name = name;
 		X = x;
 		Y = y;
 
-		isStart = isStartNode;
-		isGoal = isGoalNode;
+		nodeType = flag;
+		//isStart = isStartNode;
+		//isGoal = isGoalNode;
 
-		if (isStartNode) {
+		if (nodeType == start) {
 			//ptrToStart = this;
 			X_start = X;
 			Y_start = Y;
 		}
 
+		g = std::numeric_limits<float>::infinity();
 
-		if (isGoal) {
-			g = 0.0f;
+		if (nodeType == goal) {
 			rhs = 0.0f;
+			//queue.push(*this);	//can't do this here
 		}
 		else {
-			g = std::numeric_limits<float>::infinity();
 			rhs = std::numeric_limits<float>::infinity();
 		}
 
@@ -81,20 +88,18 @@ public:
 	}
 
 
-	float heuristic() {
+	//float heuristic() {
+	int heuristic() {
 		std::cout << "X and Y of start node: " << X_start << " , " << Y_start << std::endl;
 
-		float h = (float)sqrt(pow((X - X_start), 2.0f) + pow((Y - Y_start), 2.0f));    //pow(base, power)
+		//float h = (float)sqrt(pow((X - X_start), 2.0f) + pow((Y - Y_start), 2.0f));    //pow(base, power)
+		int h = (int)(sqrt(pow((X - X_start), 2.0f) + pow((Y - Y_start), 2.0f))*10);    //pow(base, power)
 		std::cout << "heuristic of node n" << Name << " : " << h << std::endl << std::endl;
 		return h;
 	}
 
 //////////////////////////////////   debug Methods   ////////////////////////////////
-	//void print_NodeName() {
-	//	std::cout << Name;
-	//}
-
 	void print_NodeKey() {
-		std::cout << Name << " : " << key.first << " , " << key.second << std::endl;
+		std::cout << "( "<< key.first <<" , "<< key.second <<" ) -> [" << X << "," << Y << "]" << std::endl;
 	}
 };

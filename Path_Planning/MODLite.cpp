@@ -2,7 +2,7 @@
 
 using QT = std::priority_queue<Node, std::vector<Node>, std::greater<Node>>;
 //template<typename T>
-void print_queue(QT q) {           // debug
+void print_queue(QT q) {					// debug
 	std::cout << "Queue:" << std::endl;
 	Node tmp;
 	while (!q.empty()) {
@@ -24,11 +24,30 @@ int main() {
 
 	ReadMap();
 
-	for (auto N : Node::NodesList) {
-		N.calculateKey();
-		N.heuristic();
-		queue.push(N);
+	// function Initialize()
+	for (auto &N : Node::NodesList) {
+		if (N.nodeType == goal) {
+			N.calculateKey();
+			queue.push(N);
+		}
 	}
+
+	//for (auto &N : Node::NodesList) {
+	//	if (N.X == 0 && N.Y == 0) {
+	//		N.key.first = 0.0f;
+	//		N.key.second = 0.0f;
+	//	}
+	//	else if (N.X == 1 && N.Y == 0) {
+	//		N.g = 1.0f;
+	//		N.rhs = 4.0f;
+	//		//N.key.first = 1.0f;
+	//		//N.key.second = 4.0f;
+	//	}
+	//	else if (N.X == 2 && N.Y == 0) {
+	//		N.key.first = 2.0f;
+	//		N.key.second = 0.0f;
+	//	}
+	//}
 	print_queue(queue);
 
 	std::cin.get();
