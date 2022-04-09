@@ -14,13 +14,11 @@ public:
 	static int X_start;		//		"
 	static int Y_start;		//		"
 	/*---------------------------------------------------*/
-	char Name; // only for debug
+	char Name; //debug
 
 	int X;
 	int Y;
 
-	//bool isStart;
-	//bool isGoal;
 	NodeTypes nodeType;
 
 	float g;
@@ -88,13 +86,10 @@ public:
 	}
 
 
-	//float heuristic() {
-	int heuristic() {
+	int heuristic() {		// shortest aereal path (ignoring the grid)
 		std::cout << "X and Y of start node: " << X_start << " , " << Y_start << std::endl;
-
-		//float h = (float)sqrt(pow((X - X_start), 2.0f) + pow((Y - Y_start), 2.0f));    //pow(base, power)
-		int h = (int)(sqrt(pow((X - X_start), 2.0f) + pow((Y - Y_start), 2.0f))*10);    //pow(base, power)
-		std::cout << "heuristic of node n" << Name << " : " << h << std::endl << std::endl;
+		int h = (int)((sqrt(pow((X - X_start), 2.0f) + pow((Y - Y_start), 2.0f)))*10);  //pow(base, power)
+		std::cout << "heuristic of node [" << X << "," << Y << "] : " << h << std::endl << std::endl;
 		return h;
 	}
 

@@ -32,23 +32,8 @@ int main() {
 		}
 	}
 
-	//for (auto &N : Node::NodesList) {
-	//	if (N.X == 0 && N.Y == 0) {
-	//		N.key.first = 0.0f;
-	//		N.key.second = 0.0f;
-	//	}
-	//	else if (N.X == 1 && N.Y == 0) {
-	//		N.g = 1.0f;
-	//		N.rhs = 4.0f;
-	//		//N.key.first = 1.0f;
-	//		//N.key.second = 4.0f;
-	//	}
-	//	else if (N.X == 2 && N.Y == 0) {
-	//		N.key.first = 2.0f;
-	//		N.key.second = 0.0f;
-	//	}
-	//}
-	print_queue(queue);
+
+	print_queue(queue); //debug
 
 	std::cin.get();
 }
