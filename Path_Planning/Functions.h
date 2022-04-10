@@ -10,6 +10,7 @@
 //#include <list>
 #include <vector>
 #include <string> // maybe only for debug ?
+#include <memory> //for: shared_from_this()
 
 
 float nonDom(float g, float rhs) {			// nonDom = min		// still considering single g and rhs		

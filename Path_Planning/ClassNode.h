@@ -5,11 +5,13 @@ enum NodeTypes {
 	start = 0, any = 1, goal = 2
 };
 
+	// shared pointers: most of the time is enough to replace " Node* " with " std::shared_ptr<Node> "  -> " std::weak_ptr<Node> "
 
 class Node {			// Node = state in Koeing
 public:
 	////// common to all istances: ////////////////////////
-	static std::vector<Node> NodesList; //def. in ReadMap.h
+	//static std::vector<std::weak_ptr<Node>> NodesVect;			// vector of weak pointers to Nodes - def. in ReadMap.h
+	static std::vector<std::shared_ptr<Node>> NodesVect;
 	static float k_m;		//def. in MODLite.h
 	static int X_start;		//		"
 	static int Y_start;		//		"
@@ -61,7 +63,7 @@ public:
 		key.second = -1;
 		predecessor = nullptr;
 
-		NodesList.push_back(*this);
+		NodesVect.push_back(std::make_shared<Node>(*this));
 	}
 
 ////////////////////////////   sorting criteria for queue   /////////////////////////
