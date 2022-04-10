@@ -2,8 +2,7 @@
 
 // definition of Node's static variables
 float Node::k_m = 0.0f;
-int Node::X_start = -1;
-int Node::Y_start = -1;
+std::shared_ptr<Node> Node::ptrToStart = nullptr;
 /*--------------------------------------------------------------------------*/
 
 using QT = std::priority_queue<Node, std::vector<Node>, std::greater<Node>>;
@@ -61,21 +60,26 @@ int main() {
 
 	// function Initialize()
 	for (auto N_ptr : Node::NodesVect) {
-	//	if (auto temp = N_ptr.lock()) { // if Jack there
-	//		std::cout << "ok";
+
 			if ( (*N_ptr).nodeType == goal ) {
 				(*N_ptr).calculateKey();
 				queue.push(*N_ptr);
 			}
-	//	}
-	//	else {
-	//		std::cout << "The object is not there.";
-	//	}
+
 	}
 
 	//computeMOPaths(queue);
 
-	//print_queue(queue); //debug
+	print_queue(queue); //debug
 
 	std::cin.get();
 }
+
+
+// for weak pointers (check):
+/*	if (auto temp = N_ptr.lock()) { // if Jack there
+		std::cout << "ok";
+	}
+	else {
+		std::cout << "The object is not there.";
+	} */

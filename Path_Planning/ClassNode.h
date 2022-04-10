@@ -5,16 +5,15 @@ enum NodeTypes {
 	start = 0, any = 1, goal = 2
 };
 
-	// shared pointers: most of the time is enough to replace " Node* " with " std::shared_ptr<Node> "  -> " std::weak_ptr<Node> "
 
 class Node {			// Node = state in Koeing
+	using Sptr_toNode = std::shared_ptr<Node>;
 public:
 	////// common to all istances: ////////////////////////
-	//static std::vector<std::weak_ptr<Node>> NodesVect;			// vector of weak pointers to Nodes - def. in ReadMap.h
-	static std::vector<std::shared_ptr<Node>> NodesVect;
-	static float k_m;		//def. in MODLite.h
-	static int X_start;		//		"
-	static int Y_start;		//		"
+	static std::vector<std::shared_ptr<Node>> NodesVect;	// vector of shared pointers to Nodes - def. in ReadMap.h
+	//static std::vector<std::weak_ptr<Node>> NodesVect;
+	static float k_m;			   //def. in MODLite.h
+	static Sptr_toNode ptrToStart; //def. in MODLite.h
 	/*---------------------------------------------------*/
 	char Name; //debug
 
@@ -29,7 +28,8 @@ public:
 
 	std::pair<float, float> key;
 
-	void* predecessor;
+	//void* predecessor;
+	std::shared_ptr<Node> predecessor;
 
 ////////////////////////////////////   Constructors   /////////////////////////////////
 	Node() {}		// for pointers etc.
@@ -40,20 +40,15 @@ public:
 		Y = y;
 
 		nodeType = flag;
-		//isStart = isStartNode;
-		//isGoal = isGoalNode;
 
 		if (nodeType == start) {
-			//ptrToStart = this;
-			X_start = X;
-			Y_start = Y;
+			ptrToStart = std::make_shared<Node>(*this);
 		}
 
 		g = std::numeric_limits<float>::infinity();
 
 		if (nodeType == goal) {
 			rhs = 0.0f;
-			//queue.push(*this);	//can't do this here
 		}
 		else {
 			rhs = std::numeric_limits<float>::infinity();
@@ -89,6 +84,8 @@ public:
 
 
 	int heuristic() {		// shortest aereal path (ignoring the grid)
+		int X_start = (*ptrToStart).X;
+		int Y_start = (*ptrToStart).Y;
 		std::cout << "X and Y of start node: " << X_start << " , " << Y_start << std::endl;
 		int h = (int)((sqrt(pow((X - X_start), 2.0f) + pow((Y - Y_start), 2.0f)))*10);  //pow(base, power)
 		std::cout << "heuristic of node [" << X << "," << Y << "] : " << h << std::endl << std::endl;
