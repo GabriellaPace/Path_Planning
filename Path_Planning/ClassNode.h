@@ -92,25 +92,17 @@ public:
 		std::cout << "   (-> wrt start node with coord: [" << X_start << "," << Y_start << "] )" << std::endl << std::endl;
 		return h;
 	}
-
+/*--------------------------------------------------------------------------------*/
 	void findAdjacents() {
 		int oriz, vert;
-		oriz = X + 0;  vert = Y + 1;
-		addAdj(oriz, vert);
-		oriz = X + 0;  vert = Y - 1;
-		addAdj(oriz, vert);
-		oriz = X + 1;  vert = Y + 0;
-		addAdj(oriz, vert);
-		oriz = X - 1;  vert = Y + 0;
-		addAdj(oriz, vert);
-		oriz = X + 1;  vert = Y + 1;
-		addAdj(oriz, vert);
-		oriz = X - 1;  vert = Y + 1;
-		addAdj(oriz, vert);
-		oriz = X + 1;  vert = Y - 1;
-		addAdj(oriz, vert);
-		oriz = X - 1;  vert = Y - 1;
-		addAdj(oriz, vert);
+		oriz = X + 0;  vert = Y + 1;   addAdj(oriz, vert);
+		oriz = X + 0;  vert = Y - 1;   addAdj(oriz, vert);
+		oriz = X + 1;  vert = Y + 0;   addAdj(oriz, vert);
+		oriz = X - 1;  vert = Y + 0;   addAdj(oriz, vert);
+		oriz = X + 1;  vert = Y + 1;   addAdj(oriz, vert);
+		oriz = X - 1;  vert = Y + 1;   addAdj(oriz, vert);
+		oriz = X + 1;  vert = Y - 1;   addAdj(oriz, vert);
+		oriz = X - 1;  vert = Y - 1;   addAdj(oriz, vert);
 	}
 
 	void addAdj(int oriz, int vert) {
@@ -120,26 +112,32 @@ public:
 			AdjacentsList.push_back(NodesVect[idx]);
 		}
 	}
+/*--------------------------------------------------------------------------------*/
+	void updateAdjacents() {
+		for (auto A_ptr : AdjacentsList) {   //update each node adjacent to the modified one
+			(*A_ptr).update_rhs();
+		}
+	}
 
-	//void updateAdjacents() {
-	//	for (auto &N : AdjacentsList) {
-	//		update_rhs();
-	//	}
-	//}
+	void update_rhs() {
+		int X_start = (*ptrToStart).X;
+		int Y_start = (*ptrToStart).Y;
 
-	//void update_rhs() {
-	//	min_rhs = rhs;
-	//	for (auto A : AdjacentsList) {
-	//		float d = (float)((sqrt(pow((X - X_start), 2.0f) + pow((Y - Y_start), 2.0f))) * 10);	//distance btw current node and selected adjacent node
-	//		float tmp_rhs = A.g + d;
-	//		if (tmp_rhs < min_rhs) {
-	//			min_rhs = tmp_rhs;
-	//			void* pred_ptr = *A;
-	//		}
-	//	}
-	//	rhs = min_rhs;
-	//	predecessor = pred_ptr;
-	//}
+		float current_min_rhs = rhs;
+		std::shared_ptr<Node> current_pred_ptr;
+
+		for (auto A_ptr : AdjacentsList) {   //search among all the adjacent nodes the best one to come from
+			float d = (float)((sqrt(pow((X - (*A_ptr).X), 2.0f) + pow((Y - (*A_ptr).Y), 2.0f))) * 10);
+				//^ distance btw current node and selected adjacent one
+			float tmp_rhs = (*A_ptr).g + d;    //the rhs that this node would have if updated
+			if (tmp_rhs < current_min_rhs) {   //actually update it only if better than old one
+				current_min_rhs = tmp_rhs;
+				current_pred_ptr = A_ptr;
+			}
+		}
+		rhs = current_min_rhs;
+		predecessor = current_pred_ptr;
+	}
 
 //////////////////////////////////   debug Methods   ////////////////////////////////
 	void print_Coord() {
@@ -148,6 +146,10 @@ public:
 
 	void print_NodeKey() {
 		std::cout << "( "<< key.first <<" , "<< key.second <<" ) -> [" << X << "," << Y << "]" << std::endl;
+	}
+
+	void print_g_rhs() {
+		std::cout << "[" << X << "," << Y << "] -> g=" << g << " , rhs=" << rhs << std::endl;
 	}
 
 	void print_Adjacents() {

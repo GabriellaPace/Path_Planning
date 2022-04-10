@@ -60,7 +60,7 @@ int main() {
 	ReadMap();
 	for (auto N_ptr : Node::NodesVect) {    // fill (and print) adjacents to each node
 		(*N_ptr).findAdjacents();
-		(*N_ptr).print_Adjacents();
+		(*N_ptr).print_Adjacents(); //debug
 	}
 
 	// function Initialize()
@@ -70,10 +70,33 @@ int main() {
 			queue.push(*N_ptr);
 		}
 	}
+	print_queue(queue); //debug
+
+
+/*--------------------------------------------------------------------------------------------------------------------*/
+	std::system("CLS");
+	int idx;
+	for (auto N_ptr : Node::NodesVect) {
+		(*N_ptr).print_g_rhs();
+	}
+	std::cout << std::endl << " ---------------------- \n" << std::endl;
+
+	auto itt = find_if(Node::NodesVect.begin(), Node::NodesVect.end(), 
+			   [](const std::shared_ptr<Node>& objj) {return ((*objj).X == 0 && (*objj).Y == 1); });
+	if (itt != Node::NodesVect.end()) {
+		idx = std::distance(Node::NodesVect.begin(), itt);
+		//(Node::AdjacentsList).push_back(Node::NodesVect[idx]);
+		(*(Node::NodesVect[idx])).g = 30.0f;
+	}
+
+	(*(Node::NodesVect[idx])).updateAdjacents();
+	for (auto N_ptr : Node::NodesVect) {
+		(*N_ptr).print_g_rhs();
+	}
+/*--------------------------------------------------------------------------------------------------------------------*/
+
 
 	//computeMOPaths(queue);
-
-	print_queue(queue); //debug
 
 	std::cin.get();
 }
