@@ -5,8 +5,8 @@ float Node::k_m = 0.0f;
 std::shared_ptr<Node> Node::ptrToStart = nullptr;
 /*--------------------------------------------------------------------------*/
 
-using QT = std::priority_queue<Node, std::vector<Node>, std::greater<Node>>;
-void print_queue(QT q) {					// debug
+using Qe = std::priority_queue<Node, std::vector<Node>, std::greater<Node>>;
+void print_queue(Qe q) {					// debug
 	std::cout << "Queue:" << std::endl;
 	Node tmp;
 	while (!q.empty()) {
@@ -16,10 +16,11 @@ void print_queue(QT q) {					// debug
 	}
 	std::cout << std::endl;
 }
+
 /*--------------------------------------------------------------------------*/
 
 //void DomAll(Node a, Node b) {}
-
+///// functions to implement: /////
 /*
 void computeMOPaths(QT queue) {
 	while (st > queue.top()) {
@@ -57,15 +58,17 @@ int main() {
 	std::priority_queue<Node, std::vector<Node>, std::greater<Node>>  queue;
 
 	ReadMap();
+	for (auto N_ptr : Node::NodesVect) {    // fill (and print) adjacents to each node
+		(*N_ptr).findAdjacents();
+		(*N_ptr).print_Adjacents();
+	}
 
 	// function Initialize()
 	for (auto N_ptr : Node::NodesVect) {
-
-			if ( (*N_ptr).nodeType == goal ) {
-				(*N_ptr).calculateKey();
-				queue.push(*N_ptr);
-			}
-
+		if ( (*N_ptr).nodeType == goal ) {
+			(*N_ptr).calculateKey();
+			queue.push(*N_ptr);
+		}
 	}
 
 	//computeMOPaths(queue);

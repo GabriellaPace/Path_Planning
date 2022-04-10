@@ -15,11 +15,11 @@
 
 float nonDom(float g, float rhs) {			// nonDom = min		// still considering single g and rhs		
 	if (g <= rhs) {
-		std::cout << " g " << std::endl;
+		std::cout << "	nonDom = g" << std::endl;
 		return g;
 	}
 	else {
-		std::cout << " rhs " << std::endl;
+		std::cout << "	nonDom = rhs" << std::endl << std::endl;
 		return rhs;
 	}
 }

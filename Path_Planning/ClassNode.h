@@ -1,6 +1,7 @@
 #pragma once
 #include "Functions.h"
 
+
 enum NodeTypes {
 	start = 0, any = 1, goal = 2
 };
@@ -28,8 +29,8 @@ public:
 
 	std::pair<float, float> key;
 
-	//void* predecessor;
 	std::shared_ptr<Node> predecessor;
+	std::vector<std::shared_ptr<Node>> AdjacentsList;	//all nodes adjacent to current one (const??)
 
 ////////////////////////////////////   Constructors   /////////////////////////////////
 	Node() {}		// for pointers etc.
@@ -82,14 +83,42 @@ public:
 		key.first = key.second + heuristic() + k_m;
 	}
 
-
 	int heuristic() {		// shortest aereal path (ignoring the grid)
 		int X_start = (*ptrToStart).X;
 		int Y_start = (*ptrToStart).Y;
-		std::cout << "X and Y of start node: " << X_start << " , " << Y_start << std::endl;
+		
 		int h = (int)((sqrt(pow((X - X_start), 2.0f) + pow((Y - Y_start), 2.0f)))*10);  //pow(base, power)
-		std::cout << "heuristic of node [" << X << "," << Y << "] : " << h << std::endl << std::endl;
+		std::cout << "Heuristic of node [" << X << "," << Y << "] : " << h ;
+		std::cout << "   (-> wrt start node with coord: [" << X_start << "," << Y_start << "] )" << std::endl << std::endl;
 		return h;
+	}
+
+	void findAdjacents() {
+		int oriz, vert;
+		oriz = X + 0;  vert = Y + 1;
+		addAdj(oriz, vert);
+		oriz = X + 0;  vert = Y - 1;
+		addAdj(oriz, vert);
+		oriz = X + 1;  vert = Y + 0;
+		addAdj(oriz, vert);
+		oriz = X - 1;  vert = Y + 0;
+		addAdj(oriz, vert);
+		oriz = X + 1;  vert = Y + 1;
+		addAdj(oriz, vert);
+		oriz = X - 1;  vert = Y + 1;
+		addAdj(oriz, vert);
+		oriz = X + 1;  vert = Y - 1;
+		addAdj(oriz, vert);
+		oriz = X - 1;  vert = Y - 1;
+		addAdj(oriz, vert);
+	}
+
+	void addAdj(int oriz, int vert) {
+		auto it = find_if(NodesVect.begin(), NodesVect.end(), [&oriz, &vert](const Sptr_toNode& obj) {return ((*obj).X == oriz && (*obj).Y == vert); });
+		if (it != NodesVect.end()) {
+			auto idx = std::distance(NodesVect.begin(), it);
+			AdjacentsList.push_back(NodesVect[idx]);
+		}
 	}
 
 	//void updateAdjacents() {
@@ -113,7 +142,23 @@ public:
 	//}
 
 //////////////////////////////////   debug Methods   ////////////////////////////////
+	void print_Coord() {
+		std::cout << "[" << X << "," << Y << "]";
+	}
+
 	void print_NodeKey() {
 		std::cout << "( "<< key.first <<" , "<< key.second <<" ) -> [" << X << "," << Y << "]" << std::endl;
+	}
+
+	void print_Adjacents() {
+		std::cout << "Adjacents to node ";
+		print_Coord();
+		std::cout << " : ";
+		
+		for (auto A_ptr : AdjacentsList) {
+			(*A_ptr).print_Coord();
+			std::cout << "  ";
+		}
+		std::cout << std::endl << std::endl;
 	}
 };
