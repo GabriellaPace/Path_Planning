@@ -20,42 +20,42 @@ void print_queue(Qe q) {					// debug
 /*--------------------------------------------------------------------------*/
 
 //void DomAll(Node a, Node b) {}
-///// functions to implement: /////
-/*
-void computeMOPaths(QT queue) {
-	while (st > queue.top()) {
-		Node deqN_withOldKey = queue.top();  //pick top one   // de-queued Node 
-		Node deqN_withNewKey = queue.pop();  //pick and remove top one
-		//Node::NodesList.remove(deqN_withNewKey);
-		std::remove(Node::NodesList.begin(), Node::NodesList.end(), deqN_withNewKey);
-		deqN_withNewKey.calculateKey();
-		Node::NodesList.push_back(deqN_withNewKey);
-		
-		if (deqN_withOldKey > deqN_withNewKey) {
-			queue.push(deqN_withNewKey);
-		}
-		else if (deqN_withNewKey.rhs > deqN_withNewKey.g) {		 // OVERCONSISTENT
-			deqN_withNewKey.g = deqN_withNewKey.rhs;
-			N.updateAdjacents;
-		}
-		else if (deqN_withNewKey.rhs < deqN_withNewKey.g) {		// UNDERCONSISTENT
-			deqN_withNewKey.g = std::numeric_limits<float>::infinity();
-			N.updateAdjacents;
-			N.update;
-		}
-		else {									 // not dominant and not dominated 
-			deqN_withNewKey.g = nonDom(deqN_withNewKey.g, deqN_withNewKey.rhs);
-			N.updateAdjacents;
-		}
-	}
-} */
+
+
+void computeMOPaths(Qe queue) {
+	//while (st > queue.top()) {
+	//	Node deqN_withOldKey = queue.top();  //pick top one   // de-queued Node 
+	//	Node deqN_withNewKey = queue.pop();  //pick and remove top one
+	//	//Node::NodesList.remove(deqN_withNewKey);
+	//	std::remove(Node::NodesList.begin(), Node::NodesList.end(), deqN_withNewKey);
+	//	deqN_withNewKey.calculateKey();
+	//	Node::NodesList.push_back(deqN_withNewKey);
+	//	
+	//	if (deqN_withOldKey > deqN_withNewKey) {
+	//		queue.push(deqN_withNewKey);
+	//	}
+	//	else if (deqN_withNewKey.rhs > deqN_withNewKey.g) {		 // OVERCONSISTENT
+	//		deqN_withNewKey.g = deqN_withNewKey.rhs;
+	//		N.updateAdjacents;
+	//	}
+	//	else if (deqN_withNewKey.rhs < deqN_withNewKey.g) {		// UNDERCONSISTENT
+	//		deqN_withNewKey.g = std::numeric_limits<float>::infinity();
+	//		N.updateAdjacents;
+	//		N.update;
+	//	}
+	//	else {									 // not dominant and not dominated 
+	//		deqN_withNewKey.g = nonDom(deqN_withNewKey.g, deqN_withNewKey.rhs);
+	//		N.updateAdjacents;
+	//	}
+	//}
+}
 
 /*--------------------------------------------------------------------------*/
 
 
 int main() {
 	//std::priority_queue<Node, std::vector<Node>, CompareKey >  queue;
-	std::priority_queue<Node, std::vector<Node>, std::greater<Node>>  queue;
+	std::priority_queue<Node, std::vector<Node>, std::greater<Node>>  queue;   // filled with Nodes, NOT ptr_to_Nodes !!
 
 	ReadMap();
 	for (auto N_ptr : Node::NodesVect) {    // fill (and print) adjacents to each node
@@ -74,29 +74,27 @@ int main() {
 
 
 /*--------------------------------------------------------------------------------------------------------------------*/
-	std::system("CLS");
-	int idx;
-	for (auto N_ptr : Node::NodesVect) {
-		(*N_ptr).print_g_rhs();
-	}
-	std::cout << std::endl << " ---------------------- \n" << std::endl;
-
-	auto itt = find_if(Node::NodesVect.begin(), Node::NodesVect.end(), 
-			   [](const std::shared_ptr<Node>& objj) {return ((*objj).X == 0 && (*objj).Y == 1); });
-	if (itt != Node::NodesVect.end()) {
-		idx = std::distance(Node::NodesVect.begin(), itt);
-		//(Node::AdjacentsList).push_back(Node::NodesVect[idx]);
-		(*(Node::NodesVect[idx])).g = 30.0f;
-	}
-
-	(*(Node::NodesVect[idx])).updateAdjacents();
-	for (auto N_ptr : Node::NodesVect) {
-		(*N_ptr).print_g_rhs();
-	}
+	//std::system("CLS");
+	//int idx;
+	//for (auto N_ptr : Node::NodesVect) {
+	//	(*N_ptr).print_g_rhs();
+	//}
+	//std::cout << std::endl << " ---------------------- \n" << std::endl;
+	//auto itt = find_if(Node::NodesVect.begin(), Node::NodesVect.end(), 
+	//		   [](const std::shared_ptr<Node>& objj) {return ((*objj).X == 0 && (*objj).Y == 1); });
+	//if (itt != Node::NodesVect.end()) {
+	//	idx = std::distance(Node::NodesVect.begin(), itt);
+	//	//(Node::AdjacentsList).push_back(Node::NodesVect[idx]);
+	//	(*(Node::NodesVect[idx])).g = 30.0f;
+	//}
+	//(*(Node::NodesVect[idx])).updateAdjacents();
+	//for (auto N_ptr : Node::NodesVect) {
+	//	(*N_ptr).print_g_rhs();
+	//}
 /*--------------------------------------------------------------------------------------------------------------------*/
 
 
-	//computeMOPaths(queue);
+	computeMOPaths(queue);
 
 	std::cin.get();
 }
