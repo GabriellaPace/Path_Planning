@@ -1,8 +1,9 @@
 #include "ReadMap.h"
 
+using Sptr_toNode = std::shared_ptr<Node>;
 // definition of Node's static variables
 float Node::k_m = 0.0f;
-std::shared_ptr<Node> Node::ptrToStart = nullptr;
+Sptr_toNode Node::ptrToStart = nullptr;
 /*--------------------------------------------------------------------------*/
 
 using Qe = std::priority_queue<Node, std::vector<Node>, std::greater<Node>>;
@@ -19,36 +20,47 @@ void print_queue(Qe q) {					// debug
 
 /*--------------------------------------------------------------------------*/
 
-//void DomAll(Node a, Node b) {}
+Sptr_toNode findNodeidx(int xx, int yy) {    // find the index of the desired node in NodesVect (matching X and Y)
+	int x = xx;
+	int y = yy;
+	int idx = -1;  //this should raise an error if used in a vector
+	auto it = find_if(Node::NodesVect.begin(), Node::NodesVect.end(), 
+			   [&x, &y](const std::shared_ptr<Node>& obj) {return ((*obj).X == x && (*obj).Y == y); });
+	if (it != Node::NodesVect.end()) {  //shouln't be needed, but just in case
+		idx = (int) std::distance(Node::NodesVect.begin(), it);
+	}
+	return Node::NodesVect[idx];
+}
 
 
 void computeMOPaths(Qe queue) {
-	//while (st > queue.top()) {
-	//	Node deqN_withOldKey = queue.top();  //pick top one   // de-queued Node 
-	//	Node deqN_withNewKey = queue.pop();  //pick and remove top one
-	//	//Node::NodesList.remove(deqN_withNewKey);
-	//	std::remove(Node::NodesList.begin(), Node::NodesList.end(), deqN_withNewKey);
-	//	deqN_withNewKey.calculateKey();
-	//	Node::NodesList.push_back(deqN_withNewKey);
-	//	
-	//	if (deqN_withOldKey > deqN_withNewKey) {
-	//		queue.push(deqN_withNewKey);
-	//	}
-	//	else if (deqN_withNewKey.rhs > deqN_withNewKey.g) {		 // OVERCONSISTENT
-	//		deqN_withNewKey.g = deqN_withNewKey.rhs;
-	//		N.updateAdjacents;
-	//	}
-	//	else if (deqN_withNewKey.rhs < deqN_withNewKey.g) {		// UNDERCONSISTENT
-	//		deqN_withNewKey.g = std::numeric_limits<float>::infinity();
-	//		N.updateAdjacents;
-	//		N.update;
-	//	}
-	//	else {									 // not dominant and not dominated 
-	//		deqN_withNewKey.g = nonDom(deqN_withNewKey.g, deqN_withNewKey.rhs);
-	//		N.updateAdjacents;
-	//	}
-	//}
+	while ( *(Node::ptrToStart) > queue.top()) {	// = start.key dominated the top key in the queue
+		Node deqN_wOldKey = queue.top();  //pick top one (deqN = de-queued Node)
+		queue.pop();					  //and then remove it
+		
+		Sptr_toNode deqN_ptr = findNodeidx(deqN_wOldKey.X, deqN_wOldKey.Y);	 //ptr to de-queued node	
+		(*deqN_ptr).calculateKey();
+		
+		if (deqN_wOldKey > *deqN_ptr) {					 //put it back in queue with new key
+			queue.push(*deqN_ptr);
+		}
+		else if ((*deqN_ptr).rhs > (*deqN_ptr).g) {		 // OVERCONSISTENT
+			(*deqN_ptr).g = (*deqN_ptr).rhs;
+			(*deqN_ptr).updateAdjacents();
+		}
+		else if ((*deqN_ptr).rhs < (*deqN_ptr).g) {		 // UNDERCONSISTENT
+			(*deqN_ptr).g = std::numeric_limits<float>::infinity();
+			(*deqN_ptr).updateAdjacents();
+			(*deqN_ptr).update_rhs();
+		}
+		else {											 // not dominant and not dominated 
+			(*deqN_ptr).g = nonDom((*deqN_ptr).g, (*deqN_ptr).rhs);
+			(*deqN_ptr).updateAdjacents();
+		}
+	}
 }
+
+//void DomAll(Node a, Node b) {}
 
 /*--------------------------------------------------------------------------*/
 
@@ -95,6 +107,7 @@ int main() {
 
 
 	computeMOPaths(queue);
+	print_queue(queue); //debug
 
 	std::cin.get();
 }

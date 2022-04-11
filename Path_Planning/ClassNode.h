@@ -11,7 +11,7 @@ class Node {			// Node = state in Koeing
 	using Sptr_toNode = std::shared_ptr<Node>;
 public:
 	////// common to all istances: ////////////////////////
-	static std::vector<std::shared_ptr<Node>> NodesVect;	// vector of shared pointers to Nodes - def. in ReadMap.h
+	static std::vector<Sptr_toNode> NodesVect;	// vector of shared pointers to Nodes - def. in ReadMap.h
 	//static std::vector<std::weak_ptr<Node>> NodesVect;
 	static float k_m;			   //def. in MODLite.h
 	static Sptr_toNode ptrToStart; //def. in MODLite.h
@@ -30,7 +30,7 @@ public:
 	std::pair<float, float> key;
 
 	std::shared_ptr<Node> predecessor;
-	std::vector<std::shared_ptr<Node>> AdjacentsList;	//all nodes adjacent to current one (const??)
+	std::vector<Sptr_toNode> AdjacentsList;	//all nodes adjacent to current one (const??)
 
 ////////////////////////////////////   Constructors   /////////////////////////////////
 	Node() {}		// for pointers etc.
@@ -88,8 +88,8 @@ public:
 		int Y_start = (*ptrToStart).Y;
 		
 		int h = (int)((sqrt(pow((X - X_start), 2.0f) + pow((Y - Y_start), 2.0f)))*10);  //pow(base, power)
-		std::cout << "Heuristic of node [" << X << "," << Y << "] : " << h ;
-		std::cout << "   (-> wrt start node with coord: [" << X_start << "," << Y_start << "] )" << std::endl << std::endl;
+		//std::cout << "Heuristic of node [" << X << "," << Y << "] : " << h ;
+		//std::cout << "   (-> wrt start node with coord: [" << X_start << "," << Y_start << "] )" << std::endl << std::endl;
 		return h;
 	}
 /*--------------------------------------------------------------------------------*/
