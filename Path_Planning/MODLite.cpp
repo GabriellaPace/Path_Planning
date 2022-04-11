@@ -1,6 +1,7 @@
 #include "ReadMap.h"
 
 using Sptr_toNode = std::shared_ptr<Node>;
+
 // definition of Node's static variables
 float Node::k_m = 0.0f;
 Sptr_toNode Node::ptrToStart = nullptr;
@@ -10,10 +11,21 @@ using Qe = std::priority_queue<Node, std::vector<Node>, std::greater<Node>>;
 void print_queue(Qe q) {					// debug
 	std::cout << "Queue:" << std::endl;
 	Node tmp;
-	while (!q.empty()) {
-		tmp = q.top();
-		tmp.print_NodeKey();
-		q.pop();
+	if (q.empty())
+		std::cout << " empty!";
+	else {
+		while (!q.empty()) {
+			tmp = q.top();
+			tmp.print_NodeKey();
+			q.pop();
+		}
+	}
+	std::cout << std::endl;
+}
+
+void printAll_g_rhs() {
+	for (auto N_ptr : Node::NodesVect) {
+		(*N_ptr).print_g_rhs();
 	}
 	std::cout << std::endl;
 }
@@ -33,8 +45,9 @@ Sptr_toNode findNodeidx(int xx, int yy) {    // find the index of the desired no
 }
 
 
-void computeMOPaths(Qe queue) {
-	while ( *(Node::ptrToStart) > queue.top()) {	// = start.key dominated the top key in the queue
+Qe computeMOPaths(Qe queue) {
+	(*(Node::ptrToStart)).calculateKey();
+	while ( !queue.empty()  &&  *(Node::ptrToStart) < queue.top() ) {	// = start.key dominated the top key in the queue
 		Node deqN_wOldKey = queue.top();  //pick top one (deqN = de-queued Node)
 		queue.pop();					  //and then remove it
 		
@@ -57,7 +70,10 @@ void computeMOPaths(Qe queue) {
 			(*deqN_ptr).g = nonDom((*deqN_ptr).g, (*deqN_ptr).rhs);
 			(*deqN_ptr).updateAdjacents();
 		}
+
+		(*(Node::ptrToStart)).calculateKey(); //for next loop
 	}
+	return queue;
 }
 
 //void DomAll(Node a, Node b) {}
@@ -86,7 +102,7 @@ int main() {
 
 
 /*--------------------------------------------------------------------------------------------------------------------*/
-	//std::system("CLS");
+	////std::system("CLS");
 	//int idx;
 	//for (auto N_ptr : Node::NodesVect) {
 	//	(*N_ptr).print_g_rhs();
@@ -96,7 +112,6 @@ int main() {
 	//		   [](const std::shared_ptr<Node>& objj) {return ((*objj).X == 0 && (*objj).Y == 1); });
 	//if (itt != Node::NodesVect.end()) {
 	//	idx = std::distance(Node::NodesVect.begin(), itt);
-	//	//(Node::AdjacentsList).push_back(Node::NodesVect[idx]);
 	//	(*(Node::NodesVect[idx])).g = 30.0f;
 	//}
 	//(*(Node::NodesVect[idx])).updateAdjacents();
@@ -105,8 +120,12 @@ int main() {
 	//}
 /*--------------------------------------------------------------------------------------------------------------------*/
 
+	//std::system("CLS");
+	printAll_g_rhs();
+	queue = computeMOPaths(queue);
+	std::cout << " [computing MO Path: done]\n\n";
 
-	computeMOPaths(queue);
+	printAll_g_rhs();
 	print_queue(queue); //debug
 
 	std::cin.get();

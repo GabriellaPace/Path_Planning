@@ -77,6 +77,20 @@ public:
 		}
 	}
 
+	bool operator < (const Node &N2) const {
+		//bool result;
+		if (key.first < N2.key.first)
+			return true;
+		else if (key.first > N2.key.first)
+			return false;
+		else { // key.first == N2.key.first
+			if (key.second < N2.key.second)
+				return true;
+			else // (key.second >= N2.key.second)
+				return false;
+		}
+	}
+
 /////////////////////////////////////   Methods   //////////////////////////////////
 	void calculateKey() {
 		key.second = nonDom(g, rhs);
