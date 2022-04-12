@@ -15,17 +15,16 @@ public:
 	//static std::vector<std::weak_ptr<Node>> NodesVect;
 	static float k_m;			   //def. in MODLite.h
 	static Sptr_toNode ptrToStart; //def. in MODLite.h
+	static Sptr_toNode ptrToGoal;  //def. in MODLite.h
 	/*---------------------------------------------------*/
 	char Name; //debug
 
 	int X;
 	int Y;
-
 	NodeTypes nodeType;
-
 	float g;
 	float rhs;
-	//float cost;
+	float cost;
 
 	std::pair<float, float> key;
 
@@ -35,11 +34,11 @@ public:
 ////////////////////////////////////   Constructors   /////////////////////////////////
 	Node() {}		// for pointers etc.
 
-	Node(char name, int x, int y, NodeTypes flag) {  // for actual nodes
+	Node(char name, int x, int y, float ec, NodeTypes flag) {  // for actual nodes
 		Name = name;
 		X = x;
 		Y = y;
-
+		cost = ec;
 		nodeType = flag;
 
 		if (nodeType == start) {
@@ -49,6 +48,7 @@ public:
 		g = std::numeric_limits<float>::infinity();
 
 		if (nodeType == goal) {
+			ptrToGoal = std::make_shared<Node>(*this);
 			rhs = 0.0f;
 		}
 		else {
@@ -176,5 +176,31 @@ public:
 			std::cout << "  ";
 		}
 		std::cout << std::endl << std::endl;
+	}
+};
+
+
+
+
+class dummyNode {
+public:
+	static std::vector<std::shared_ptr<dummyNode>> newMap;	// vector of shared pointers to dummyNodes - def. in ReadMap.h
+	char Name; //debug
+	int X;
+	int Y;
+	NodeTypes nodeType;
+	float cost;
+
+/////////////////////////   Constructors   //////////////////////////
+	dummyNode() {}		// for pointers etc.
+
+	dummyNode(char name, int x, int y, float ec, NodeTypes flag) {  // for actual nodes
+		Name = name;
+		X = x;
+		Y = y;
+		nodeType = flag;
+		cost = ec;
+
+		newMap.push_back(std::make_shared<dummyNode>(*this));
 	}
 };

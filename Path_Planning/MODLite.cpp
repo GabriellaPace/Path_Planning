@@ -4,8 +4,10 @@ using Sptr_toNode = std::shared_ptr<Node>;
 
 // definition of Node's static variables
 float Node::k_m = 0.0f;
-Sptr_toNode Node::ptrToStart = nullptr;
-/*--------------------------------------------------------------------------*/
+Sptr_toNode  Node::ptrToStart = nullptr;
+Sptr_toNode  Node::ptrToGoal  = nullptr;
+
+/*---------------------------  Debug functions  -------------------------------*/
 
 using Qe = std::priority_queue<Node, std::vector<Node>, std::greater<Node>>;
 void print_queue(Qe q) {					// debug
@@ -30,7 +32,7 @@ void printAll_g_rhs() {
 	std::cout << std::endl;
 }
 
-/*--------------------------------------------------------------------------*/
+/*------------------------------  Functions  ----------------------------------*/
 
 Sptr_toNode findNodeidx(int xx, int yy) {    // find the index of the desired node in NodesVect (matching X and Y)
 	int x = xx;
@@ -73,19 +75,28 @@ Qe computeMOPaths(Qe queue) {
 
 		(*(Node::ptrToStart)).calculateKey(); //for next loop
 	}
+	std::cout << " [computing MO Path: done]\n\n";
 	return queue;
+}
+
+std::vector<Sptr_toNode> generateMOPaths(){
+	std::vector<Sptr_toNode> a;
+	return a;
 }
 
 //void DomAll(Node a, Node b) {}
 
-/*--------------------------------------------------------------------------*/
-
+/*-----------------------------------------------------------------------------*/
 
 int main() {
+/*---------------------   iNITIALIZATIONS   ---------------------*/
 	//std::priority_queue<Node, std::vector<Node>, CompareKey >  queue;
 	std::priority_queue<Node, std::vector<Node>, std::greater<Node>>  queue;   // filled with Nodes, NOT ptr_to_Nodes !!
+	bool changed_edges = false;
+	std::vector<Sptr_toNode> solutionPaths;
+/*---------------------------------------------------------------*/
 
-	ReadMap();
+	ReadMap_firstTime();
 	for (auto N_ptr : Node::NodesVect) {    // fill (and print) adjacents to each node
 		(*N_ptr).findAdjacents();
 		(*N_ptr).print_Adjacents(); //debug
@@ -101,7 +112,7 @@ int main() {
 	print_queue(queue); //debug
 
 
-/*--------------------------------------------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------*/
 	////std::system("CLS");
 	//int idx;
 	//for (auto N_ptr : Node::NodesVect) {
@@ -118,15 +129,47 @@ int main() {
 	//for (auto N_ptr : Node::NodesVect) {
 	//	(*N_ptr).print_g_rhs();
 	//}
-/*--------------------------------------------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------*/
 
 	//std::system("CLS");
-	printAll_g_rhs();
+	printAll_g_rhs();   //debug
 	queue = computeMOPaths(queue);
-	std::cout << " [computing MO Path: done]\n\n";
 
-	printAll_g_rhs();
+	printAll_g_rhs();	//debug
 	print_queue(queue); //debug
+
+
+
+	while (true) {
+		solutionPaths = generateMOPaths();
+		if (solutionPaths.empty()) {
+			std::cout << "[!] There are no avaliable paths - waiting for any edge cost to change.\n";
+		}
+		for (auto N_ptr : Node::NodesVect) {
+			//save old costs
+		}
+		
+		ReadMap();	//wait for any weight cost to change
+		for (auto N_ptr : Node::NodesVect) {
+			//confront old and new costs
+			//save pointers of changed ones
+			//(update start and goal, if changed)
+			changed_edges = true;
+		}
+		if (changed_edges) {
+			Node::k_m = Node::k_m + (*(Node::ptrToGoal)).heuristic();
+			//for all Changed weight costs of edges(u, v) {
+			//	Update cost c(u, v);
+			//	updateVertex(u);
+			//	computeMOPaths();
+			//}
+		}
+		changed_edges = false;
+	}
+
+	 
+
+	return true;
 
 	std::cin.get();
 }
