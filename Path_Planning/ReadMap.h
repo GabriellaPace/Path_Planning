@@ -22,4 +22,5 @@ void ReadMap_firstTime() {
 void ReadMap() {
 	dummyNode n2('2', 1, 0, 1, start);
 	dummyNode n3('3', 2, 0, 5, any);
+	dummyNode n7('7', 3, 1, 1, any);
 }

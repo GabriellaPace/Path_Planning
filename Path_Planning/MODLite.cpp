@@ -7,8 +7,8 @@ Sptr_toNode  Node::ptrToStart = nullptr;
 Sptr_toNode  Node::ptrToGoal  = nullptr;
 
 
-///////////////////////////////   FUNCTIONS   ///////////////////////////////////
-/*---------------------------  Debug functions  -------------------------------*/
+//////////////////////////////////    FUNCTIONS   ///////////////////////////////////
+/*-------------------------------  Debug functions  -------------------------------*/
 using Qe = std::priority_queue<Node, std::vector<Node>, std::greater<Node>>;
 void print_queue(Qe q) {					// debug
 	std::cout << "Queue:" << std::endl;
@@ -32,7 +32,7 @@ void printAll_g_rhs() {
 	std::cout << std::endl;
 }
 
-/*------------------------------  Functions  ----------------------------------*/
+/*----------------------------------  Functions  ----------------------------------*/
 Sptr_toNode findNodeptr(int xx, int yy) {    // find the index of the desired node in NodesVect (matching X and Y)
 	int x = xx;
 	int y = yy;
@@ -139,11 +139,10 @@ int main() {
 	print_queue(queue); //debug
 
 
-	bool flagg = true;
-	while (flagg) {
+	//while (true) {
 		solutionPaths = generateMOPaths();
 		if (solutionPaths.empty()) {
-			std::cout << "[!] There are no avaliable paths - waiting for any edge cost to change.\n";
+			std::cout << "[!] There are no avaliable paths - waiting for any edge cost to change.\n\n";
 		}
 		
 		ReadMap();	//wait for any weight cost to change
@@ -156,7 +155,7 @@ int main() {
 				}
 			}
 			catch(...) { //catch all exceptions (Node not found)
-				std::cout << "Found new node, not present previously.\n";	 
+				std::cout << "Found new node, not present previously.\n\n";	 
 				Node n9((*d_ptr).Name, d_ptr->X, d_ptr->Y, (*d_ptr).cost, d_ptr->nodeType);  //define new Node
 				changed_edges = true;
 			}
@@ -172,21 +171,19 @@ int main() {
 		}
 
 		if (changed_edges) {
-			Node::k_m = Node::k_m + (*(Node::ptrToGoal)).heuristic();  //start node has changed
-			
-			//for all Changed weight costs of edges(u, v) {
-			for (auto cN_ptr : ChangedNodes) {
+			Node::k_m = Node::k_m + (*(Node::ptrToGoal)).heuristic();  //start node has changed		
+			for (auto cN_ptr : ChangedNodes) {  //= for all Changed weight costs of edges(u, v) {
 				N_inOld = findNodeptr(cN_ptr->X, cN_ptr->Y);
-				N_inOld->cost = cN_ptr->cost;  // Update cost c(u, v);
-				// updateVertex(u);
+				N_inOld->cost = cN_ptr->cost;  //= Update cost c(u, v);
+				N_inOld->update_rhs();
 				computeMOPaths(queue);
 			}
 		}
 		changed_edges = false;
 		ChangedNodes.clear();
+	//}
 
-		flagg = false;
-	}
+		printAll_g_rhs();
 
 
 	//// DELETE ALL objects
