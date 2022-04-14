@@ -14,6 +14,8 @@ void ReadMap_firstTime() {
 	Node n4('4', 0, 1, 1, any);
 	Node n5('5', 1, 1, 1, any);
 	Node gl('6', 2, 1, 1, goal);
+
+	//new Node('1', 0, 0, 1, start);
 }
 
 

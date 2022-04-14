@@ -21,10 +21,10 @@ public:
 
 	int X;
 	int Y;
-	NodeTypes nodeType;
 	float g;
 	float rhs;
 	float cost;
+	NodeTypes nodeType;
 
 	std::pair<float, float> key;
 
@@ -188,8 +188,8 @@ public:
 	char Name; //debug
 	int X;
 	int Y;
-	NodeTypes nodeType;
 	float cost;
+	NodeTypes nodeType;
 
 /////////////////////////   Constructors   //////////////////////////
 	dummyNode() {}		// for pointers etc.
