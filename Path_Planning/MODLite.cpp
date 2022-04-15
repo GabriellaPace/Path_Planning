@@ -1,4 +1,5 @@
 #include "ReadMap.h"
+//#define DEBUG  //#ifdef DEBUG   #endif
 
 using Sptr_toNode = std::shared_ptr<Node>;
 // definition of Node's static variables
@@ -14,7 +15,7 @@ void print_queue(Qe q) {					// debug
 	std::cout << "Queue:" << std::endl;
 	Node tmp;
 	if (q.empty())
-		std::cout << " empty!";
+		std::cout << " empty!\n";
 	else {
 		while (!q.empty()) {
 			tmp = q.top();
@@ -26,6 +27,7 @@ void print_queue(Qe q) {					// debug
 }
 
 void printAll_g_rhs() {
+	std::cout << "g and rhs for all current nodes:\n";
 	for (auto N_ptr : Node::NodesVect) {
 		(*N_ptr).print_g_rhs();
 	}
@@ -42,6 +44,9 @@ Sptr_toNode findNodeptr(int xx, int yy) {    // find the index of the desired no
 	if (it != Node::NodesVect.end()) {  //shouln't be needed, but just in case
 		idx = (int) std::distance(Node::NodesVect.begin(), it);
 	}
+	else {
+		throw " => The coordinates you are looking for are not present in the old map.\n";
+	}
 	return Node::NodesVect[idx];
 }
 
@@ -55,14 +60,14 @@ Qe computeMOPaths(Qe queue) {
 		Sptr_toNode deqN_ptr = findNodeptr(deqN_wOldKey.X, deqN_wOldKey.Y);	 //ptr to de-queued node	
 		(*deqN_ptr).calculateKey();
 		
-		if (deqN_wOldKey > *deqN_ptr) {					 //put it back in queue with new key
+		if (deqN_wOldKey < *deqN_ptr) {					 //put it back in queue with new key
 			queue.push(*deqN_ptr);
 		}
-		else if ((*deqN_ptr).rhs > (*deqN_ptr).g) {		 // OVERCONSISTENT
+		else if ((*deqN_ptr).rhs < (*deqN_ptr).g) {		 // OVERCONSISTENT
 			(*deqN_ptr).g = (*deqN_ptr).rhs;
 			(*deqN_ptr).updateAdjacents();
 		}
-		else if ((*deqN_ptr).rhs < (*deqN_ptr).g) {		 // UNDERCONSISTENT
+		else if ((*deqN_ptr).rhs > (*deqN_ptr).g) {		 // UNDERCONSISTENT
 			(*deqN_ptr).g = std::numeric_limits<float>::infinity();
 			(*deqN_ptr).updateAdjacents();
 			(*deqN_ptr).update_rhs();
@@ -74,7 +79,7 @@ Qe computeMOPaths(Qe queue) {
 
 		(*(Node::ptrToStart)).calculateKey(); //for next loop
 	}
-	std::cout << " [computing MO Path: done]\n\n";
+	std::cout << " => Computed MO Paths.\n\n";
 	return queue;
 }
 
@@ -110,42 +115,22 @@ int main() {
 			queue.push(*N_ptr);
 		}
 	}
-	print_queue(queue); //debug
+		print_queue(queue);  //debug
 
-/*---------------------------------------------------------------
-	////std::system("CLS");
-	//int idx;
-	//for (auto N_ptr : Node::NodesVect) {
-	//	(*N_ptr).print_g_rhs();
-	//}
-	//std::cout << std::endl << " ---------------------- \n" << std::endl;
-	//auto itt = find_if(Node::NodesVect.begin(), Node::NodesVect.end(), 
-	//		   [](const std::shared_ptr<Node>& objj) {return ((*objj).X == 0 && (*objj).Y == 1); });
-	//if (itt != Node::NodesVect.end()) {
-	//	idx = std::distance(Node::NodesVect.begin(), itt);
-	//	(*(Node::NodesVect[idx])).g = 30.0f;
-	//}
-	//(*(Node::NodesVect[idx])).updateAdjacents();
-	//for (auto N_ptr : Node::NodesVect) {
-	//	(*N_ptr).print_g_rhs();
-	//}
----------------------------------------------------------------*/
-
-	//std::system("CLS");
-	printAll_g_rhs();   //debug
+		//std::system("CLS");//debug
+		printAll_g_rhs();    //debug
 	queue = computeMOPaths(queue);
-
-	printAll_g_rhs();	//debug
-	print_queue(queue); //debug
+		printAll_g_rhs();	 //debug
+		print_queue(queue);  //debug
 
 
 	//while (true) {
 		solutionPaths = generateMOPaths();
 		if (solutionPaths.empty()) {
-			std::cout << "[!] There are no avaliable paths - waiting for any edge cost to change.\n\n";
+			std::cout << " => There are no avaliable paths - waiting for any edge cost to change.\n\n";
 		}
 		
-		ReadMap();	//wait for any weight cost to change
+		ReadMap();	//second map  (//wait for any weight cost to change)
 		for (auto d_ptr : dummyNode::newMap) {
 			try {
 				N_inOld = findNodeptr((*d_ptr).X, (*d_ptr).Y);
@@ -154,8 +139,8 @@ int main() {
 					ChangedNodes.push_back(N_inOld);  //save pointers of changed ones
 				}
 			}
-			catch(...) { //catch all exceptions (Node not found)
-				std::cout << "Found new node, not present previously.\n\n";	 
+			catch(const char *err) {  // Node not found
+				std::cout << err <<	"     ^ So a new node will be created.\n\n";
 				Node n9((*d_ptr).Name, d_ptr->X, d_ptr->Y, (*d_ptr).cost, d_ptr->nodeType);  //define new Node
 				changed_edges = true;
 			}
@@ -176,7 +161,7 @@ int main() {
 				N_inOld = findNodeptr(cN_ptr->X, cN_ptr->Y);
 				N_inOld->cost = cN_ptr->cost;  //= Update cost c(u, v);
 				N_inOld->update_rhs();
-				computeMOPaths(queue);
+				computeMOPaths(queue); //<===============================================================================
 			}
 		}
 		changed_edges = false;
@@ -193,12 +178,3 @@ int main() {
 	//}
 	std::cin.get();
 }
-
-
-// for weak pointers (check):
-/*	if (auto temp = N_ptr.lock()) { // if Jack there
-		std::cout << "ok";
-	}
-	else {
-		std::cout << "The object is not there.";
-	} */
