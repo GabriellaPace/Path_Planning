@@ -35,19 +35,19 @@ void printAll_g_rhs() {
 }
 
 /*----------------------------------  Functions  ----------------------------------*/
-Sptr_toNode findNodeptr(int xx, int yy) {    // find the index of the desired node in NodesVect (matching X and Y)
+Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
 	int x = xx;
 	int y = yy;
-	int idx = -1;  //this should raise an error if used in a vector
+	int idx; // = -1;   //<- this should raise an error if used in a vector
 	auto it = find_if(Node::NodesVect.begin(), Node::NodesVect.end(), 
 			   [&x, &y](const std::shared_ptr<Node>& obj) {return ((*obj).X == x && (*obj).Y == y); });
-	if (it != Node::NodesVect.end()) {  //shouln't be needed, but just in case
+	if (it != Node::NodesVect.end()) {
 		idx = (int) std::distance(Node::NodesVect.begin(), it);
+		return Node::NodesVect[idx];
 	}
 	else {
-		throw " => The coordinates you are looking for are not present in the old map.\n";
+		return nullptr;
 	}
-	return Node::NodesVect[idx];
 }
 
 
@@ -87,8 +87,6 @@ std::vector<Sptr_toNode> generateMOPaths(){
 	std::vector<Sptr_toNode> a;
 	return a;
 }
-
-//void DomAll(Node a, Node b) {}
 
 
 ////////////////////////////////   INITIALIZATIONS   ////////////////////////////////
@@ -132,18 +130,18 @@ int main() {
 		
 		ReadMap();	//second map  (//wait for any weight cost to change)
 		for (auto d_ptr : dummyNode::newMap) {
-			try {
-				N_inOld = findNodeptr((*d_ptr).X, (*d_ptr).Y);
+			N_inOld = findNodeptr((*d_ptr).X, (*d_ptr).Y);
+			if (N_inOld == nullptr) {  //Node not found
+				std::cout << " The coordinates are not in the old map, so a new node will be created.\n\n";
+				Node n9((*d_ptr).Name, d_ptr->X, d_ptr->Y, (*d_ptr).cost, d_ptr->nodeType);  //define new Node
+				changed_edges = true;
+			}
+			else {					  //Node found
 				if ((*d_ptr).cost != (*N_inOld).cost) {   //changed edge cost!
 					changed_edges = true;
 					ChangedNodes.push_back(N_inOld);  //save pointers of changed ones
 				}
-			}
-			catch(const char *err) {  // Node not found
-				std::cout << err <<	"     ^ So a new node will be created.\n\n";
-				Node n9((*d_ptr).Name, d_ptr->X, d_ptr->Y, (*d_ptr).cost, d_ptr->nodeType);  //define new Node
-				changed_edges = true;
-			}
+			}			
 			
 			if (changed_edges) {
 				if ((*d_ptr).nodeType == start) {
@@ -161,7 +159,7 @@ int main() {
 				N_inOld = findNodeptr(cN_ptr->X, cN_ptr->Y);
 				N_inOld->cost = cN_ptr->cost;  //= Update cost c(u, v);
 				N_inOld->update_rhs();
-				computeMOPaths(queue); //<===============================================================================
+				queue = computeMOPaths(queue); //<===============================================================================
 			}
 		}
 		changed_edges = false;
@@ -169,6 +167,7 @@ int main() {
 	//}
 
 		printAll_g_rhs();
+		print_queue(queue);
 
 
 	//// DELETE ALL objects
