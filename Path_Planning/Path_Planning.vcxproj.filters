@@ -21,13 +21,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Functions.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ClassNode.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Head.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ReadMap.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
