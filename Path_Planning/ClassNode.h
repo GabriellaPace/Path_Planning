@@ -133,7 +133,7 @@ public:
 		}
 	}
 
-	void update_rhs() {
+	void update_rhs() {    //function UPDATE_VERTEX(u)
 		int X_start = (*ptrToStart).X;
 		int Y_start = (*ptrToStart).Y;
 

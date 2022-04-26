@@ -51,7 +51,7 @@ Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired 
 }
 
 
-Qe computeMOPaths(Qe queue) {
+Qe computeMOPaths(Qe queue) {  //function COMPUTE_MO_PATHS()	
 	(*(Node::ptrToStart)).calculateKey();
 	while ( !queue.empty()  &&  *(Node::ptrToStart) < queue.top() ) {	// = start.key dominated the top key in the queue
 		Node deqN_wOldKey = queue.top();  //pick top one (deqN = de-queued Node)
@@ -83,10 +83,83 @@ Qe computeMOPaths(Qe queue) {
 	return queue;
 }
 
-std::vector<Sptr_toNode> generateMOPaths(){
-	std::vector<Sptr_toNode> a;
-	return a;
+// expanding a state = observe the domination between g and rhs
+Qe expandingStates;  // queue of (ptr to) nodes which adjacents should be updated = to expand
+std::vector<Sptr_toNode> nonDomSuccs;
+// map parents() //keys = parents, values = cumulative costs
+std::vector<Sptr_toNode> solutionPaths;
+//? cumulativeC;
+
+
+//s = node to expand, s1 = nondominated successor of s
+
+std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()   -   s1 = s’ ,  s2 = s’’
+	
+	// FIRST phase (from start to goal)
+	expandingStates.push(Node::ptrToStart);
+
+		while ( !expandingStates.empty() ) {
+			//Java: poll() returns the element at the head of the Queue [returns null if the Queue is empty]
+			Sptr_toNode Ns = expandingStates.top();
+			expandingStates.pop(); // ?
+
+
+			//nonDomSuccs = nonDom_[s?succ(s)](sum(c(s, s’), g(s’))    <->    find non-dominated successors, wrt multiobjective c+g
+			
+
+			for (auto s1 : nonDomSuccs) {
+				if (Ns.predecessor == nullptr) {      // if s doesn't have any parent (only iff s=StarT): 
+													  // ^ for sure s' does not have any parent as well!
+					s1.predecessor = *Ns;			  // ^ so Ns is added as a parent of s' with corresponding cost c(s, s).
+				}
+				else {
+				//	cumulativeC = sum(c(s, s1), s.parents().values());
+				//	if (s1.predecessor == nullptr) {
+				//		s1.parents().put(s, cumulativeC);
+				//	}
+				//	else {
+						//for (auto s : s.parents() ) {
+						//	if ( equals(s1.parents(s2), cumulativeC) || completelyDominates(s1.parents(s2), cumulativeC) ) { //OR
+						//		break;
+						//	}
+						//	else if ( completelyDominates(cumulativeC, s1.parents(s2)) ) {
+						//		s1.parents().remove(s2);
+						//		s1.parents().put(s, cumulativeC);
+						//	}
+						//	else {
+						//		for (auto cC : cumulativeC) {
+						//			for (auto eC : s.parents(s)) {
+						//				if (eC.equals(cC) || eC.dominates(cC)) {  //OR
+						//					cumulativeC.remove(cC);
+						//					break;
+						//				}
+						//				else if (cC.dominates(eC)) {
+						//					s1.parents(s2).remove(eC);
+						//					break;
+						//				}
+						//			}
+						//			if (s1.parents(s2) == null) {
+						//				s1.parents().remove(s2);
+						//			}
+						//		}
+						//		if (cumulativeC != null) {
+						//			s1.parents().put(s, cumulativeC);
+						//		}
+						//	}
+						//}
+					//}
+				}
+				//if (s1.parents.contains(s) && !expandingStates.contains(s1) ) {
+				//	expandingStates.push_back(s1);
+				//}
+			}
+		}
+
+		// SECOND phase (from goal to start)
+		//solutionPaths = construct paths recursively traversing parents;
+		return solutionPaths;
 }
+
 
 
 ////////////////////////////////   INITIALIZATIONS   ////////////////////////////////
@@ -106,6 +179,7 @@ int main() {
 		(*N_ptr).print_Adjacents(); //debug
 	}
 
+// function PLAN()
 	// function Initialize()
 	for (auto N_ptr : Node::NodesVect) {
 		if ( (*N_ptr).nodeType == goal ) {
@@ -165,6 +239,8 @@ int main() {
 		changed_edges = false;
 		ChangedNodes.clear();
 	//}
+// end of function PLAN()
+
 
 		printAll_g_rhs();
 		print_queue(queue);
