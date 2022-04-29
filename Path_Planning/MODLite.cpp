@@ -31,7 +31,7 @@ std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()
 				}
 				else {									// if Ns does have predefined parents
 					//float c_v = std::accumulate(std::begin((*Ns).parents), std::end((*Ns).parents), 0, [](const std::float previous, const std::pair<const std::string, std::float>& p) { return previous + p.second; });
-					//cumulativeC =cost(s, s1) + c_v;		// cumulative cost for s'
+					cumulativeC = Node::compute_cost(Ns, s1);// +c_v;		// cumulative cost for s'
 
 				//	if (s1.predecessor == nullptr) {
 				//		s1.parents().put(s, cumulativeC);

@@ -30,6 +30,7 @@ public:
 
 	std::shared_ptr<Node> predecessor;
 	std::vector<Sptr_toNode> AdjacentsList;	//all nodes adjacent to current one (const??)
+	std::unordered_map<Sptr_toNode, float> parents; //key: ptr to node, value: cost
 
 ////////////////////////////////////   Constructors   /////////////////////////////////
 	Node() {}		// for pointers etc.
@@ -150,7 +151,14 @@ public:
 			}
 		}
 		rhs = current_min_rhs;
-		predecessor = current_pred_ptr;
+		predecessor = current_pred_ptr; //to remove
+		parents[current_pred_ptr] = compute_cost(std::make_shared<Node>(*this), current_pred_ptr);
+	}
+/*--------------------------------------------------------------------------------*/
+	static float compute_cost(Sptr_toNode n1, Sptr_toNode n2) {
+		//float c = (float)((sqrt(pow(( (*n1).X - (*n2).X), 2.0f) + pow(((*n1)Y - (*n2).Y), 2.0f))) * 10);
+		//return c;
+		return (float)((sqrt(pow(((*n1).X - (*n2).X), 2.0f) + pow(((*n1).Y - (*n2).Y), 2.0f))) * 10);
 	}
 
 //////////////////////////////////   debug Methods   ////////////////////////////////
