@@ -37,27 +37,31 @@ std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()
 			
 
 			for (auto s1 : nonDomSuccs) {
-				if ((*Ns).predecessor == nullptr) {		// if Ns doesn't have any parent (only iff s=StarT): 
-														// ^ for sure s' does not have any parent as well!
-					(*s1).predecessor = Ns;				// ^ so Ns is added as a parent of s' with corresponding cost c(s, s).
+				if ((*Ns).parents.empty()) {
+				//if ((*Ns).predecessor == nullptr) {		// if Ns doesn't have any parent (only iff s=StarT): 
+															// ^ for sure s' does not have any parent as well!
+					//(*s1).predecessor = Ns;				// ^ so Ns is added as a parent of s' with corresponding cost c(s, s').
+					(*s1).parents[Ns] = compute_cost(Ns, s1);
 				}
-				else {									// if Ns does have predefined parents
-					int c_v = std::accumulate( (*Ns).parents.begin(), (*Ns).parents.end(), 0, 																		[](int prev_sum, const std::pair<Sptr_toNode, int> &entry)															{ return prev_sum + entry.second; } );
-					cumulativeC = compute_cost(Ns, s1) + c_v;		// cumulative cost for s'
+				else {										// if Ns does have predefined parents
+					auto c_tmp = std::accumulate( (*Ns).parents.begin(), (*Ns).parents.end(), 0, 																		[](int prev_sum, const std::pair<Sptr_toNode, int> &entry)															{ return prev_sum + entry.second; } );
+					cumulativeC = compute_cost(Ns, s1) + c_tmp;		// cumulative cost for s'
 
-				//	if (s1.predecessor == nullptr) {
-				//		s1.parents().put(s, cumulativeC);
-				//	}
-				//	else {
-						//for (auto s : s.parents() ) {
-						//	if ( equals(s1.parents(s2), cumulativeC) || completelyDominates(s1.parents(s2), cumulativeC) ) { //OR
-						//		break;
-						//	}
-						//	else if ( completelyDominates(cumulativeC, s1.parents(s2)) ) {
-						//		s1.parents().remove(s2);
-						//		s1.parents().put(s, cumulativeC);
-						//	}
-						//	else {
+					if ((*s1).parents.empty()) {
+						(*s1).parents[Ns] = cumulativeC;  //s1.parents().put(s, cumulativeC);
+					}
+					else {
+						for (auto& [parent_2, cost_2] : (*Ns).parents) {		//for (auto s'' : s.parents() ) {  
+							if (cost_2 >= cumulativeC) {    
+							//if ( equals(s1.parents(s2), cumulativeC) || completelyDominates(s1.parents(s2), cumulativeC) ) {
+								break;
+							}
+							else if (cost_2 < cumulativeC) {
+							//else if ( completelyDominates(cumulativeC, s1.parents(s2)) ) {
+								(*s1).parents.erase(parent_2);		//s1.parents().remove(s2);
+								(*s1).parents[Ns] = cumulativeC;	//s1.parents().put(s, cumulativeC);
+							}
+							else {
 						//		for (auto cC : cumulativeC) {
 						//			for (auto eC : s.parents(s)) {
 						//				if (eC.equals(cC) || eC.dominates(cC)) {  //OR
@@ -76,9 +80,9 @@ std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()
 						//		if (cumulativeC != null) {
 						//			s1.parents().put(s, cumulativeC);
 						//		}
-						//	}
-						//}
-					//}
+							}
+						}
+					}
 				}
 				//if (s1.parents.contains(s) && !expandingStates.contains(s1) ) {
 				//	expandingStates.push_back(s1);
