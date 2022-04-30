@@ -23,19 +23,19 @@ public:
 	int Y;
 	float g;
 	float rhs;
-	float cost;
+	int cost;
 	NodeTypes nodeType;
 
 	std::pair<float, float> key;
 
-	std::shared_ptr<Node> predecessor;
+	std::shared_ptr<Node> predecessor; //to remove, replaced by parents[]
 	std::vector<Sptr_toNode> AdjacentsList;	//all nodes adjacent to current one (const??)
-	std::unordered_map<Sptr_toNode, float> parents; //key: ptr to node, value: cost
+	std::unordered_map<Sptr_toNode, int> parents; //key: ptr to node, value: cumulative cost
 
 ////////////////////////////////////   Constructors   /////////////////////////////////
 	Node() {}		// for pointers etc.
 
-	Node(char name, int x, int y, float ec, NodeTypes flag) {  // for actual nodes
+	Node(char name, int x, int y, int ec, NodeTypes flag) {  // for actual nodes
 		Name = name;
 		X = x;
 		Y = y;
@@ -152,14 +152,12 @@ public:
 		}
 		rhs = current_min_rhs;
 		predecessor = current_pred_ptr; //to remove
-		parents[current_pred_ptr] = compute_cost(std::make_shared<Node>(*this), current_pred_ptr);
+		parents[current_pred_ptr];// = compute_cost(std::make_shared<Node>(*this), current_pred_ptr);
 	}
 /*--------------------------------------------------------------------------------*/
-	static float compute_cost(Sptr_toNode n1, Sptr_toNode n2) {
-		//float c = (float)((sqrt(pow(( (*n1).X - (*n2).X), 2.0f) + pow(((*n1)Y - (*n2).Y), 2.0f))) * 10);
-		//return c;
-		return (float)((sqrt(pow(((*n1).X - (*n2).X), 2.0f) + pow(((*n1).Y - (*n2).Y), 2.0f))) * 10);
-	}
+	//static float compute_cost(Sptr_toNode n1, Sptr_toNode n2) {
+	//	return (float)((sqrt(pow(((*n1).X - (*n2).X), 2.0f) + pow(((*n1).Y - (*n2).Y), 2.0f))) * 10);
+	//}
 
 //////////////////////////////////   debug Methods   ////////////////////////////////
 	void print_Coord() {
@@ -196,13 +194,13 @@ public:
 	char Name; //debug
 	int X;
 	int Y;
-	float cost;
+	int cost;
 	NodeTypes nodeType;
 
 /////////////////////////   Constructors   //////////////////////////
 	dummyNode() {}		// for pointers etc.
 
-	dummyNode(char name, int x, int y, float ec, NodeTypes flag) {  // for actual nodes
+	dummyNode(char name, int x, int y, int ec, NodeTypes flag) {  // for actual nodes
 		Name = name;
 		X = x;
 		Y = y;

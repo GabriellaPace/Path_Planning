@@ -14,6 +14,7 @@
 #include <memory> //for: shared_from_this()
 #include <valarray> //for: parents.values().sum()
 #include <unordered_map>
+#include <numeric> //for: std::accumulate()
 
 
 float nonDom(float g, float rhs) {			// nonDom = min		// still considering single g and rhs		

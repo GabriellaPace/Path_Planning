@@ -2,12 +2,24 @@
 //#define DEBUG  //#ifdef DEBUG   #endif
 
 
+
+////////////////////////////////   INITIALIZATIONS   ////////////////////////////////
+//std::priority_queue<Node, std::vector<Node>, CompareKey >  queue;
+std::priority_queue<Node, std::vector<Node>, std::greater<Node>>  queue;   // filled with Nodes, NOT ptr_to_Nodes !!
+bool changed_edges = false;
+//std::vector<Sptr_toNode> solutionPaths;
+Sptr_toNode N_inOld = nullptr;
+std::vector<Sptr_toNode> ChangedNodes;
+
+/////////////////////////////////////////////////////////////////////////////////////
+
 	// expanding a state = observe the domination between g and rhs
 Qe expandingStates;  // queue of (ptr to) nodes which adjacents should be updated = to expand
 std::vector<Sptr_toNode> nonDomSuccs;
-// map parents() //keys = parents, values = cumulative costs
-float cumulativeC;
+int cumulativeC;
 std::vector<Sptr_toNode> solutionPaths;
+
+/////////////////////////////////////////////////////////////////////////////////////
 
 	//Ns = node to expand, s1 = nondominated successor of Ns  (s1 = s’ ,  s2 = s’’)
 std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()   
@@ -30,8 +42,8 @@ std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()
 					(*s1).predecessor = Ns;				// ^ so Ns is added as a parent of s' with corresponding cost c(s, s).
 				}
 				else {									// if Ns does have predefined parents
-					//float c_v = std::accumulate(std::begin((*Ns).parents), std::end((*Ns).parents), 0, [](const std::float previous, const std::pair<const std::string, std::float>& p) { return previous + p.second; });
-					cumulativeC = Node::compute_cost(Ns, s1);// +c_v;		// cumulative cost for s'
+					int c_v = std::accumulate( (*Ns).parents.begin(), (*Ns).parents.end(), 0, 																		[](int prev_sum, const std::pair<Sptr_toNode, int> &entry)															{ return prev_sum + entry.second; } );
+					cumulativeC = compute_cost(Ns, s1) + c_v;		// cumulative cost for s'
 
 				//	if (s1.predecessor == nullptr) {
 				//		s1.parents().put(s, cumulativeC);
@@ -80,16 +92,6 @@ std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()
 }
 
 
-
-////////////////////////////////   INITIALIZATIONS   ////////////////////////////////
-//std::priority_queue<Node, std::vector<Node>, CompareKey >  queue;
-std::priority_queue<Node, std::vector<Node>, std::greater<Node>>  queue;   // filled with Nodes, NOT ptr_to_Nodes !!
-bool changed_edges = false;
-//std::vector<Sptr_toNode> solutionPaths;
-Sptr_toNode N_inOld = nullptr;
-std::vector<Sptr_toNode> ChangedNodes;
-
-/////////////////////////////////////////////////////////////////////////////////////
 
 int main() {
 	ReadMap_firstTime();

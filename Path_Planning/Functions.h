@@ -35,6 +35,11 @@ void printAll_g_rhs() {
 }
 
 /*----------------------------------  Functions  ----------------------------------*/
+int compute_cost(Sptr_toNode n1, Sptr_toNode n2) {
+	return (int)((sqrt(pow(((*n1).X - (*n2).X), 2.0f) + pow(((*n1).Y - (*n2).Y), 2.0f))) * 10);
+}
+
+
 Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
 	int x = xx;
 	int y = yy;
