@@ -16,7 +16,8 @@ std::vector<Sptr_toNode> ChangedNodes;
 	// expanding a state = observe the domination between g and rhs
 Qe expandingStates;  // queue of (ptr to) nodes which adjacents should be updated = to expand
 std::vector<Sptr_toNode> nonDomSuccs;
-int cumulativeC;
+//int cumulativeC;
+std::vector<int> cumulativeCs;
 std::vector<Sptr_toNode> solutionPaths;
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -37,51 +38,57 @@ std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()
 			
 
 			for (auto s1 : nonDomSuccs) {
-				if ((*Ns).parents.empty()) {
-				//if ((*Ns).predecessor == nullptr) {		// if Ns doesn't have any parent (only iff s=StarT): 
-															// ^ for sure s' does not have any parent as well!
-					//(*s1).predecessor = Ns;				// ^ so Ns is added as a parent of s' with corresponding cost c(s, s').
-					(*s1).parents[Ns] = compute_cost(Ns, s1);
+				if ((*Ns).parents.empty()) {					// if Ns doesn't have any parent (only iff s=StarT): 		
+					(*s1).parents[Ns] = compute_cost(Ns, s1);	// ^ for sure s' does not have any parent as well!
+																// ^ so Ns is added as a parent of s' with corresponding cost c(s, s').
 				}
-				else {										// if Ns does have predefined parents
-					auto c_tmp = std::accumulate( (*Ns).parents.begin(), (*Ns).parents.end(), 0, 																		[](int prev_sum, const std::pair<Sptr_toNode, int> &entry)															{ return prev_sum + entry.second; } );
-					cumulativeC = compute_cost(Ns, s1) + c_tmp;		// cumulative cost for s'
+				else {											// if Ns does have predefined parents
+					//auto c_tmp = std::accumulate( (*Ns).parents.begin(), (*Ns).parents.end(), 0, 																		[](int prev_sum, const std::pair<Sptr_toNode, int> &entry)															{ return prev_sum + entry.second; } );
+					//cumulativeC = compute_cost(Ns, s1) + c_tmp;		// cumulative cost for s'
 
+					/*10*/
+					int i = 0;
+					for (auto& [parent_1, cost_1] : (*Ns).parents) {
+						cumulativeCs[i] = compute_cost(Ns, s1) + cost_1;  //should go back to parents of parent, but which one to choose??
+						i++;
+					}
+
+					/*11-12*/
 					if ((*s1).parents.empty()) {
-						(*s1).parents[Ns] = cumulativeC;  //s1.parents().put(s, cumulativeC);
+						(*s1).parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeC);   ??????????
 					}
 					else {
-						for (auto& [parent_2, cost_2] : (*Ns).parents) {		//for (auto s'' : s.parents() ) {  
-							if (cost_2 >= cumulativeC) {    
-							//if ( equals(s1.parents(s2), cumulativeC) || completelyDominates(s1.parents(s2), cumulativeC) ) {
-								break;
-							}
-							else if (cost_2 < cumulativeC) {
-							//else if ( completelyDominates(cumulativeC, s1.parents(s2)) ) {
-								(*s1).parents.erase(parent_2);		//s1.parents().remove(s2);
-								(*s1).parents[Ns] = cumulativeC;	//s1.parents().put(s, cumulativeC);
-							}
-							else {
-						//		for (auto cC : cumulativeC) {
-						//			for (auto eC : s.parents(s)) {
-						//				if (eC.equals(cC) || eC.dominates(cC)) {  //OR
-						//					cumulativeC.remove(cC);
-						//					break;
-						//				}
-						//				else if (cC.dominates(eC)) {
-						//					s1.parents(s2).remove(eC);
-						//					break;
-						//				}
-						//			}
-						//			if (s1.parents(s2) == null) {
-						//				s1.parents().remove(s2);
-						//			}
-						//		}
-						//		if (cumulativeC != null) {
-						//			s1.parents().put(s, cumulativeC);
-						//		}
-							}
-						}
+				//		for (auto& [parent_2, cost_2] : (*Ns).parents) {		//for (auto s'' : s.parents() ) {  
+				//			if (cost_2 >= cumulativeC) {    
+				//			//if ( equals(s1.parents(s2), cumulativeC) || completelyDominates(s1.parents(s2), cumulativeC) ) {
+				//				break;
+				//			}
+				//			else if (cost_2 < cumulativeC) {
+				//			//else if ( completelyDominates(cumulativeC, s1.parents(s2)) ) {
+				//				(*s1).parents.erase(parent_2);		//s1.parents().remove(s2);
+				//				(*s1).parents[Ns] = cumulativeC;	//s1.parents().put(s, cumulativeC);
+				//			}
+				//			else {
+				//		//		for (auto cC : cumulativeC) {
+				//		//			for (auto eC : s.parents(s)) {
+				//		//				if (eC.equals(cC) || eC.dominates(cC)) {  //OR
+				//		//					cumulativeC.remove(cC);
+				//		//					break;
+				//		//				}
+				//		//				else if (cC.dominates(eC)) {
+				//		//					s1.parents(s2).remove(eC);
+				//		//					break;
+				//		//				}
+				//		//			}
+				//		//			if (s1.parents(s2) == null) {
+				//		//				s1.parents().remove(s2);
+				//		//			}
+				//		//		}
+				//		//		if (cumulativeC != null) {
+				//		//			s1.parents().put(s, cumulativeC);
+				//		//		}
+				//			}
+				//		}
 					}
 				}
 				//if (s1.parents.contains(s) && !expandingStates.contains(s1) ) {
