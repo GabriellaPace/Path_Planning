@@ -35,8 +35,8 @@ void printAll_g_rhs() {
 }
 
 /*----------------------------------  Functions  ----------------------------------*/
-int compute_cost(Sptr_toNode n1, Sptr_toNode n2) {
-	return (int)((sqrt(pow(((*n1).X - (*n2).X), 2.0f) + pow(((*n1).Y - (*n2).Y), 2.0f))) * 10);
+uint8_t compute_cost(Sptr_toNode n1, Sptr_toNode n2) {
+	return (uint8_t)((sqrt(pow(((*n1).X - (*n2).X), 2.0f) + pow(((*n1).Y - (*n2).Y), 2.0f))) * 10);
 }
 
 

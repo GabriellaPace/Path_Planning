@@ -16,8 +16,8 @@ std::vector<Sptr_toNode> ChangedNodes;
 	// expanding a state = observe the domination between g and rhs
 Qe expandingStates;  // queue of (ptr to) nodes which adjacents should be updated = to expand
 std::vector<Sptr_toNode> nonDomSuccs;
-//int cumulativeC;
-std::vector<int> cumulativeCs;
+//uint8_t cumulativeC;
+std::vector<uint8_t> cumulativeCs;
 std::vector<Sptr_toNode> solutionPaths;
 
 /////////////////////////////////////////////////////////////////////////////////////
