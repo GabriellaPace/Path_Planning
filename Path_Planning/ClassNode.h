@@ -21,25 +21,27 @@ public:
 
 	int X;
 	int Y;
-	float g;
-	float rhs;
-	uint8_t cost;
+	//uint8_t cost;
+	float g;		//cost function
+	float rhs;		//one step lookahead value of g
 	NodeTypes nodeType;
 
 	std::pair<float, float> key;
 
 	std::shared_ptr<Node> predecessor; //to remove, replaced by parents[]
 	std::vector<Sptr_toNode> AdjacentsList;	//all nodes adjacent to current one (const??)
-	std::unordered_map<Sptr_toNode, uint8_t> parents; //key: ptr to node, value: cumulative cost
+	//std::unordered_map<Sptr_toNode, uint8_t> parents; //key: ptr to node, value: cumulative cost
+	std::unordered_map< Sptr_toNode, std::vector<uint8_t> > parents;
 
 ////////////////////////////////////   Constructors   /////////////////////////////////
 	Node() {}		// for pointers etc.
 
-	Node(char name, int x, int y, uint8_t ec, NodeTypes flag) {  // for actual nodes
+	//Node(char name, int x, int y, uint8_t ec, NodeTypes flag) {  // for actual nodes
+	Node(char name, int x, int y, NodeTypes flag) {  // for actual nodes
 		Name = name;
 		X = x;
 		Y = y;
-		cost = ec;
+		//cost = ec;
 		nodeType = flag;
 
 		if (nodeType == start) {
@@ -197,6 +199,7 @@ public:
 	dummyNode() {}		// for pointers etc.
 
 	dummyNode(char name, int x, int y, uint8_t ec, NodeTypes flag) {  // for actual nodes
+	//dummyNode(char name, int x, int y, NodeTypes flag) {  // for actual nodes
 		Name = name;
 		X = x;
 		Y = y;

@@ -13,14 +13,15 @@
 
 
 float nonDom(float g, float rhs) {			// nonDom = min		// still considering single g and rhs		
-	if (g <= rhs) {
-		//std::cout << "	(nonDom = g)" << std::endl;
-		return g;
-	}
-	else {
-		//std::cout << "	(nonDom = rhs)" << std::endl << std::endl;
-		return rhs;
-	}
+	//if (g <= rhs) {
+	//	//std::cout << "	(nonDom = g)" << std::endl;
+	//	return g;
+	//}
+	//else {
+	//	//std::cout << "	(nonDom = rhs)" << std::endl << std::endl;
+	//	return rhs;
+	//}
+	return std::min(g, rhs);
 }
 
 
@@ -39,15 +40,15 @@ comparResult vectComparison(std::vector<float> g, std::vector<float> rhs) {		// 
 	int countL = 0;
 	int countE = 0;
 
-	for (int i = 0; i < g.size(); i++) {
+	for (int i = 0; i < g.size(); ++i) {
 		if (g[i] > rhs[i]) {
-			countG++;
+			++countG;
 		}
 		else if (g[i] < rhs[i]) {
-			countL++;
+			++countL;
 		}
 		else {
-			countE++;
+			++countE;
 		}
 	}
 
