@@ -30,8 +30,7 @@ public:
 
 	std::shared_ptr<Node> predecessor; //to remove, replaced by parents[]
 	std::vector<Sptr_toNode> AdjacentsList;	//all nodes adjacent to current one (const??)
-	//std::unordered_map<Sptr_toNode, uint8_t> parents; //key: ptr to node, value: cumulative cost
-	std::unordered_map< Sptr_toNode, std::vector<uint8_t> > parents;
+	robin_hood::unordered_map < Sptr_toNode, std::vector<uint8_t> > parents;    //key: ptr to node, value: cumulative cost
 
 ////////////////////////////////////   Constructors   /////////////////////////////////
 	Node() {}		// for pointers etc.

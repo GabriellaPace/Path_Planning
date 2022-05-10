@@ -7,9 +7,9 @@
 //#include <list>
 #include <vector>
 #include <string> // maybe only for debug ?
-#include <unordered_map>
 //#include <valarray> //for: parents.values().sum()
 //#include <numeric> //for: std::accumulate()
+#include "robin_hood.h" //faster than <unordered_map>
 
 
 float nonDom(float g, float rhs) {			// nonDom = min		// still considering single g and rhs		
