@@ -8,18 +8,12 @@ std::vector<std::shared_ptr<dummyNode>> dummyNode::newMap;
 
 
 void ReadMap_firstTime() {
-	//Node st('1', 0, 0, 1, start);
-	//Node n2('2', 1, 0, 1, any);
-	//Node n3('3', 2, 0, 1, any);
-	//Node n4('4', 0, 1, 1, any);
-	//Node n5('5', 1, 1, 1, any);
-	//Node gl('6', 2, 1, 1, goal);
-	Node st('1', 0, 0, start);
-	Node n2('2', 1, 0, any);
-	Node n3('3', 2, 0, any);
-	Node n4('4', 0, 1, any);
-	Node n5('5', 1, 1, any);
-	Node gl('6', 2, 1, goal);
+	Node st('1', 0, 0, 1, start);
+	Node n2('2', 1, 0, 1, any);
+	Node n3('3', 2, 0, 1, any);
+	Node n4('4', 0, 1, 1, any);
+	Node n5('5', 1, 1, 1, any);
+	Node gl('6', 2, 1, 1, goal);
 
 	//new Node('1', 0, 0, 1, start);
 }
@@ -29,7 +23,4 @@ void ReadMap() {
 	dummyNode n2('2', 1, 0, 1, start);
 	dummyNode n3('3', 2, 0, 5, any);
 	dummyNode n7('7', 3, 1, 1, any);
-	//dummyNode n2('2', 1, 0, start);
-	//dummyNode n3('3', 2, 0, any);
-	//dummyNode n7('7', 3, 1, any);
 }

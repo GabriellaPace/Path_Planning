@@ -21,7 +21,7 @@ public:
 
 	int X;
 	int Y;
-	//uint8_t cost;
+	uint8_t cost;   //node cost (from which we will derive edge costs)
 	float g;		//cost function
 	float rhs;		//one step lookahead value of g
 	NodeTypes nodeType;
@@ -36,12 +36,11 @@ public:
 ////////////////////////////////////   Constructors   /////////////////////////////////
 	Node() {}		// for pointers etc.
 
-	//Node(char name, int x, int y, uint8_t ec, NodeTypes flag) {  // for actual nodes
-	Node(char name, int x, int y, NodeTypes flag) {  // for actual nodes
+	Node(char name, int x, int y, uint8_t ec, NodeTypes flag) {  // for actual nodes
 		Name = name;
 		X = x;
 		Y = y;
-		//cost = ec;
+		cost = ec;
 		nodeType = flag;
 
 		if (nodeType == start) {
@@ -67,7 +66,6 @@ public:
 
 ////////////////////////////   sorting criteria for queue   /////////////////////////
 	bool operator > (const Node &N2) const {
-		//bool result;
 		if (key.first > N2.key.first)
 			return true;
 		else if (key.first < N2.key.first)
@@ -81,7 +79,6 @@ public:
 	}
 
 	bool operator < (const Node &N2) const {
-		//bool result;
 		if (key.first < N2.key.first)
 			return true;
 		else if (key.first > N2.key.first)
@@ -120,6 +117,7 @@ public:
 		oriz = X - 1;  vert = Y + 1;   addAdj(oriz, vert);
 		oriz = X + 1;  vert = Y - 1;   addAdj(oriz, vert);
 		oriz = X - 1;  vert = Y - 1;   addAdj(oriz, vert);
+		//^ remove redundant definitions
 	}
 
 	void addAdj(int oriz, int vert) {
@@ -199,7 +197,6 @@ public:
 	dummyNode() {}		// for pointers etc.
 
 	dummyNode(char name, int x, int y, uint8_t ec, NodeTypes flag) {  // for actual nodes
-	//dummyNode(char name, int x, int y, NodeTypes flag) {  // for actual nodes
 		Name = name;
 		X = x;
 		Y = y;

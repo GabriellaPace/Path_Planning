@@ -35,12 +35,11 @@ void printAll_g_rhs() {
 }
 
 /*----------------------------------  Functions  ----------------------------------*/
-// NO - needs to be "retrieve_cost" from the map 
 uint8_t compute_cost(Sptr_toNode n1, Sptr_toNode n2) {
-	return (uint8_t)((sqrt(pow(((*n1).X - (*n2).X), 2.0f) + pow(((*n1).Y - (*n2).Y), 2.0f))) * 10);
+	return std::max(n1->cost, n2->cost);	//as done for Theta* Planner in Nav2
 }
 
-
+ 
 Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
 	int x = xx;
 	int y = yy;
