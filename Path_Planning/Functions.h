@@ -35,11 +35,6 @@ void printAll_g_rhs() {
 }
 
 /*----------------------------------  Functions  ----------------------------------*/
-uint8_t compute_cost(Sptr_toNode n1, Sptr_toNode n2) {
-	return std::max(n1->cost, n2->cost);	//as done for Theta* Planner in Nav2
-}
-
- 
 Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
 	int x = xx;
 	int y = yy;
@@ -54,6 +49,39 @@ Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired 
 		return nullptr;
 	}
 }
+
+
+uint8_t compute_cost(Sptr_toNode n1, Sptr_toNode n2) {
+	return std::max(n1->cost, n2->cost);	//as done for Theta* Planner in Nav2
+}
+
+
+
+std::vector<Sptr_toNode> nonDom_succs(Sptr_toNode N) {		// find non-dominated nodes among successors of the given node		
+	std::vector<Sptr_toNode> nonDomSuccs_tmp;
+	bool nonDom_flag;
+	float cC_out, cC_in;  // still considering single g and rhs -> will become vectors //cC = cumulative cost (outer/inner loop)
+
+	for(auto adN : N->AdjacentsList) {		//per ogni elemento di AdjacentsList
+		nonDom_flag = true;
+		cC_out = compute_cost(N, adN) + adN->g;
+		
+		for (auto inN : N->AdjacentsList) {		//paragona con goni altro elemento di AdjacentsList [anche con se stesso!! -> problema?	 
+			cC_in = compute_cost(N, inN) + inN->g;
+			if (!nonDom_b(cC_out, cC_in)) {			//it is dominated by someone-else!
+				nonDom_flag = false;
+				break;
+			}
+		}
+
+		if (nonDom_flag) {
+			nonDomSuccs_tmp.push_back(adN);
+		}
+	}
+
+	return nonDomSuccs_tmp;
+}
+
 
 
 Qe computeMOPaths(Qe queue) {  //function COMPUTE_MO_PATHS()	
@@ -78,7 +106,7 @@ Qe computeMOPaths(Qe queue) {  //function COMPUTE_MO_PATHS()
 			(*deqN_ptr).update_rhs();
 		}
 		else {											 // not dominant and not dominated 
-			(*deqN_ptr).g = nonDom((*deqN_ptr).g, (*deqN_ptr).rhs);
+			(*deqN_ptr).g = nonDom_2((*deqN_ptr).g, (*deqN_ptr).rhs);
 			(*deqN_ptr).updateAdjacents();
 		}
 

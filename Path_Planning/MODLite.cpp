@@ -35,13 +35,8 @@ std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()
 			expandingStates.pop(); // ?
 
 			/*5*/
-			//nonDomSuccs = nonDom_[s' in succ(Ns)](sum(c(Ns, s’), g(s’))    <->    find non-dominated successors, wrt multiobjective c+g
-			for (auto& [s1_ptr, s1_cost] : (*Ns).parents) {
-				float val = compute_cost(Ns, s1_ptr) + (*s1_ptr).g;
-				if ( (*s1_ptr).g > val ) {
-					nonDomSuccs.push_back(s1_ptr);
-				}
-			}
+			//nonDomSuccs = nonDom_[s' in succ(Ns)](sum(c(Ns, s’), g(s’))   <->   find non-dominated successors, wrt multiobjective c+g
+			nonDomSuccs = nonDom_succs(Ns);
 			
 
 			for (auto s1 : nonDomSuccs) {

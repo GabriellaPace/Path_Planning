@@ -92,7 +92,7 @@ public:
 
 /////////////////////////////////////   Methods   //////////////////////////////////
 	void calculateKey() {
-		key.second = nonDom(g, rhs);
+		key.second = nonDom_2(g, rhs);
 		key.first = key.second + heuristic() + k_m;
 	}
 

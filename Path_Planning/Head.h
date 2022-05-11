@@ -12,16 +12,17 @@
 #include "robin_hood.h" //faster than <unordered_map>
 
 
-float nonDom(float g, float rhs) {			// nonDom = min		// still considering single g and rhs		
-	//if (g <= rhs) {
-	//	//std::cout << "	(nonDom = g)" << std::endl;
-	//	return g;
-	//}
-	//else {
-	//	//std::cout << "	(nonDom = rhs)" << std::endl << std::endl;
-	//	return rhs;
-	//}
-	return std::min(g, rhs);
+float nonDom_2(float g, float rhs) {		// nonDom = min			
+	return std::min(g, rhs);		// still considering single g and rhs	
+}
+
+bool nonDom_b(float a, float b) {
+	if (a <= b) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 
