@@ -4,6 +4,7 @@
 #include <limits>		// for min/max
 #include <memory> //for: shared_from_this()
 #include <queue>
+#include <deque>
 //#include <list>
 #include <vector>
 #include <string> // maybe only for debug ?

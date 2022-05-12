@@ -21,16 +21,16 @@ public:
 
 	int X;
 	int Y;
-	uint8_t cost;   //node cost (from which we will derive edge costs)
+	uint8_t cost;   //read from height map (from which we will derive edge costs)
 	float g;		//cost function
 	float rhs;		//one step lookahead value of g
 	NodeTypes nodeType;
 
 	std::pair<float, float> key;
 
-	std::shared_ptr<Node> predecessor; //to remove, replaced by parents[]
 	std::vector<Sptr_toNode> AdjacentsList;	//all nodes adjacent to current one (const??)
-	robin_hood::unordered_map < Sptr_toNode, std::vector<uint8_t> > parents;    //key: ptr to node, value: cumulative cost
+	std::shared_ptr<Node> predecessor; //to remove, replaced by parents[]
+	robin_hood::unordered_map < Sptr_toNode, uint8_t > parents;    //key: ptr to node, value: cumulative cost
 
 ////////////////////////////////////   Constructors   /////////////////////////////////
 	Node() {}		// for pointers etc.
@@ -60,6 +60,8 @@ public:
 		key.second = -1;
 		predecessor = nullptr;
 
+		findAdjacents();
+			print_Adjacents(); //debug
 		NodesVect.push_back(std::make_shared<Node>(*this));
 	}
 
@@ -176,7 +178,7 @@ public:
 			(*A_ptr).print_Coord();
 			std::cout << "  ";
 		}
-		std::cout << std::endl << std::endl;
+		std::cout << std::endl;
 	}
 };
 

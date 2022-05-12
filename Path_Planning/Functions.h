@@ -9,8 +9,10 @@ Sptr_toNode  Node::ptrToStart = nullptr;
 Sptr_toNode  Node::ptrToGoal = nullptr;
 
 
-/*-------------------------------  Debug functions  -------------------------------*/
 using Qe = std::priority_queue<Node, std::vector<Node>, std::greater<Node>>;
+using Deq = std::deque<Sptr_toNode>;
+
+/*-------------------------------  Debug functions  -------------------------------*/
 void print_queue(Qe q) {					// debug
 	std::cout << "Queue:" << std::endl;
 	Node tmp;
@@ -34,6 +36,13 @@ void printAll_g_rhs() {
 	std::cout << std::endl;
 }
 
+void print_intVect(std::vector<uint8_t> vect) {
+	for (auto& v : vect) {
+		std::cout << v << std::endl;
+	}
+	std::cout << std::endl;
+}
+
 /*----------------------------------  Functions  ----------------------------------*/
 Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
 	int x = xx;
@@ -51,8 +60,9 @@ Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired 
 }
 
 
-uint8_t compute_cost(Sptr_toNode n1, Sptr_toNode n2) {
-	return std::max(n1->cost, n2->cost);	//as done for Theta* Planner in Nav2
+
+uint8_t compute_cost(Sptr_toNode n1, Sptr_toNode n2) {	// edge-cost derived from node-costs
+	return std::max(n1->cost, n2->cost);	//<- as done for Theta* Planner in Nav2
 }
 
 

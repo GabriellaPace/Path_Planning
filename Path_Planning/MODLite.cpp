@@ -3,70 +3,60 @@
 
 
 
-////////////////////////////////   INITIALIZATIONS   ////////////////////////////////
-//std::priority_queue<Node, std::vector<Node>, CompareKey >  queue;
-std::priority_queue<Node, std::vector<Node>, std::greater<Node>>  queue;   // filled with Nodes, NOT ptr_to_Nodes !!
-bool changed_edges = false;
-//std::vector<Sptr_toNode> solutionPaths;
-Sptr_toNode N_inOld = nullptr;
-std::vector<Sptr_toNode> ChangedNodes;
 
 /////////////////////////////////////////////////////////////////////////////////////
 
-	// expanding a state = observe the domination between g and rhs
-Qe expandingStates;  // queue of (ptr to) nodes which adjacents should be updated = to expand
 std::vector<Sptr_toNode> nonDomSuccs;
-//uint8_t cumulativeC;
-std::vector<uint8_t> cumulativeCs;
 std::vector<Sptr_toNode> solutionPaths;
 
 /////////////////////////////////////////////////////////////////////////////////////
 
-
+	// expanding a state = observe the domination between g and rhs
 	//Ns = node to expand, s1 = nondominated successor of Ns  (s1 = s’ ,  s2 = s’’)
-std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()   
+std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()  
+	// DECLARATIONS
+	Deq expandingStates;	// (de)queue of (ptr to) nodes which adjacents should be updated = to expand (FIFO)
+	std::vector<uint8_t> cumulativeCs;
+	uint8_t cost_tmp;
+
 	
 	// FIRST phase (from start to goal)
-	expandingStates.push(*(Node::ptrToStart));
+	//expandingStates.push(*(Node::ptrToStart));  
+	expandingStates.push_back(Node::ptrToStart);
 
 		while ( !expandingStates.empty() ) {
-			//Java: poll() returns the element at the head of the Queue [returns null if the Queue is empty]
-			Sptr_toNode Ns = findNodeptr( expandingStates.top().X, expandingStates.top().Y);
-			expandingStates.pop(); // ?
+			//re-initializations
+			cumulativeCs.clear();	// right?? <---------------------------------------------------------------------------------------
 
-			/*5*/
+			//Java: poll() returns the element at the head of the Queue [returns null if the Queue is empty]
+			Sptr_toNode Ns = expandingStates.front();
+			expandingStates.pop_front();
+
 			//nonDomSuccs = nonDom_[s' in succ(Ns)](sum(c(Ns, s’), g(s’))   <->   find non-dominated successors, wrt multiobjective c+g
 			nonDomSuccs = nonDom_succs(Ns);
 			
-
 			for (auto s1 : nonDomSuccs) {
-				if ((*Ns).parents.empty()) {							// if Ns doesn't have any parent (only iff s=StarT): 		
-					(*s1).parents[Ns].push_back(compute_cost(Ns, s1));	// ^ for sure s' does not have any parent as well!
-																	// ^ so Ns is added as a parent of s' with corresponding cost c(s, s').
+				if ((*Ns).parents.empty()) {							// if Ns doesn't have any parent (only iff s=Start): 		
+					(*s1).parents[Ns] = compute_cost(Ns, s1);	// ^ for sure s' does not have any parent as well!
+																		// ^ so Ns is added as a parent of s' with corresponding cost c(s, s').
 				}
 				else {													// if Ns does have predefined parents
 					/*10*/
-					int i = 0;
-					Sptr_toNode par = Ns;
-					while ( !(*par).parents.empty() ) {		// the parent has a parent
-						for (auto& [s1_ptr, s1_cost] : (*par).parents) {
-							cumulativeCs[i] = compute_cost(Ns, s1_ptr);  // +cost_1;  //should go back to parents of parent, but which one to choose??
-							++i;
-						}
+					cost_tmp = compute_cost(Ns, s1);
+					for (auto& [s1_ptr, s1_cost] : (*Ns).parents) {
+						cumulativeCs.push_back(cost_tmp + s1_cost);
 					}
-
-					//std::cout << "CUMULATIVE COSTS:\n";	//debug
-					//for (auto cc : cumulativeCs) {
-					//	std::cout << cc << "  ";
-					//}
-					//std::cout << std::endl;
 
 					/*11-12*/
 					if ((*s1).parents.empty()) {
-						(*s1).parents[Ns] = cumulativeCs;	//s1.parents().put(s, cumulativeC);   ??????????
+						(*s1).parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeC);
+													// [!!!!] ASSUMING THAT HERE WE ALWAYS HAVE ONLY ONE VALUE IN cumulativeCs 
+
+							std::cout << "cumulativeCs:\n"; // debug
+							print_intVect(cumulativeCs); // debug
 					}
 					else {
-				//		for (auto& [s2_ptr, s2_cost] : (*Ns).parents) {		//for (auto s'' : s.parents() ) {  
+				//		for (auto& [s2_ptr, s2_cost] : (*s1).parents) {		//for (auto s'' : s'.parents() ) {  
 				//			if (s2_cost >= cumulativeC) {    
 				//			//if ( equals(s1.parents(s2), cumulativeC) || completelyDominates(s1.parents(s2), cumulativeC) ) {
 				//				break;
@@ -99,9 +89,13 @@ std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()
 				//		}
 					}
 				}
-				//if (s1.parents.contains(s) && !expandingStates.contains(s1) ) {
-				//	expandingStates.push_back(s1);
-				//}
+
+				//if (s1.parents.contains(s) && !expandingStates.contains(s1) )  =  Ns is among s' parents  and  s' is not already in the expanding queue
+				if ( ((*s1).parents.find(Ns) != (*s1).parents.end())  &&  
+					 (find(expandingStates.begin(), expandingStates.end(), s1) == expandingStates.end()) ) {
+				
+					expandingStates.push_back(s1);
+				}
 			}
 		}
 
@@ -111,12 +105,22 @@ std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()
 }
 
 
+
+
+////////////////////////////////   INITIALIZATIONS   ////////////////////////////////
+//std::priority_queue<Node, std::vector<Node>, CompareKey >  queue;
+std::priority_queue<Node, std::vector<Node>, std::greater<Node>>  queue;   // filled with Nodes, NOT ptr_to_Nodes !!
+bool changed_costs = false;
+Sptr_toNode N_inOld = nullptr;
+std::vector<Sptr_toNode> ChangedNodes;
+
+
 int main() {
 	ReadMap_firstTime();
-	for (auto N_ptr : Node::NodesVect) {    // fill (and print) adjacents to each node
-		(*N_ptr).findAdjacents();
-		(*N_ptr).print_Adjacents(); //debug
-	}
+	//for (auto N_ptr : Node::NodesVect) {    // fill (and print) adjacents to each node
+	//	(*N_ptr).findAdjacents();
+	//	(*N_ptr).print_Adjacents(); //debug
+	//}
 
 // function PLAN()
 	// function Initialize()
@@ -147,16 +151,16 @@ int main() {
 			if (N_inOld == nullptr) {	//Node not found
 				std::cout << " The coordinates are not in the old map, so a new node will be created.\n\n";
 				Node n9(d_ptr->Name, d_ptr->X, d_ptr->Y, d_ptr->cost, d_ptr->nodeType);  //define new Node
-				changed_edges = true;
+				changed_costs = true;
 			}
 			else {						//Node found
-				if ((*d_ptr).cost != (*N_inOld).g) {	//changed edge cost!  //<==================================================
-					changed_edges = true;
+				if ((*d_ptr).cost != (*N_inOld).cost) {	//changed node cost!  //<==================================================
+					changed_costs = true;
 					ChangedNodes.push_back(N_inOld);	//save pointers of changed ones
 				}
 			}			
 			
-			if (changed_edges) {
+			if (changed_costs) {
 				if ((*d_ptr).nodeType == start) {
 					Node::ptrToStart = findNodeptr((*d_ptr).X, (*d_ptr).Y);
 				}
@@ -166,16 +170,19 @@ int main() {
 			}
 		}
 
-		if (changed_edges) {
+		if (changed_costs) {
 			Node::k_m = Node::k_m + (*(Node::ptrToGoal)).heuristic();  //start node has changed		
-			for (auto cN_ptr : ChangedNodes) {  //= for all Changed weight costs of edges(u, v) {
+			for (auto cN_ptr : ChangedNodes) {	//= for all changed weight costs of NODES
 				N_inOld = findNodeptr(cN_ptr->X, cN_ptr->Y);
-				N_inOld->g = cN_ptr->g;  //= Update cost c(u, v);  //<===========================================================
-				N_inOld->update_rhs();
+				N_inOld->cost = cN_ptr->cost;	//= "Update cost" /*11*/
+				N_inOld->update_rhs();			// = "Update Vertex" /*12*/
+				
+				N_inOld->updateAdjacents();		//should I update all the adjacent nodes' rhs??  <===============================
+
 				queue = computeMOPaths(queue); //<===============================================================================
 			}
 		}
-		changed_edges = false;
+		changed_costs = false;
 		ChangedNodes.clear();
 	//}
 // end of function PLAN()
