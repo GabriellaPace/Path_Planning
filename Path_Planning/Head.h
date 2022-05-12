@@ -12,6 +12,8 @@
 //#include <numeric> //for: std::accumulate()
 #include "robin_hood.h" //faster than <unordered_map>
 
+//#define DEBUG  //#ifdef DEBUG   #endif
+
 
 float nonDom_2(float g, float rhs) {		// nonDom = min			
 	return std::min(g, rhs);		// still considering single g and rhs	

@@ -13,9 +13,9 @@ public:
 	////// common to all istances: ////////////////////////
 	static std::vector<Sptr_toNode> NodesVect;	// vector of shared pointers to Nodes - def. in ReadMap.h
 	//static std::vector<std::weak_ptr<Node>> NodesVect;
-	static float k_m;			   //def. in MODLite.h
-	static Sptr_toNode ptrToStart; //def. in MODLite.h
-	static Sptr_toNode ptrToGoal;  //def. in MODLite.h
+	static float k_m;			   //def. in Functions.h
+	static Sptr_toNode ptrToStart; //def. in Functions.h
+	static Sptr_toNode ptrToGoal;  //def. in Functions.h
 	/*---------------------------------------------------*/
 	char Name; //debug
 
@@ -59,9 +59,6 @@ public:
 		key.first = -1;
 		key.second = -1;
 		predecessor = nullptr;
-
-		findAdjacents();
-			print_Adjacents(); //debug
 		NodesVect.push_back(std::make_shared<Node>(*this));
 	}
 

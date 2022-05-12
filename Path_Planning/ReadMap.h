@@ -1,11 +1,6 @@
 #pragma once
 #include "ClassNode.h"
 
-	// shared pointers: most of the time is enough to replace " Node* " with " std::shared_ptr<Node> "  -> " std::weak_ptr<Node> "
-//std::vector<std::weak_ptr<Node>> Node::NodesVect;
-std::vector<std::shared_ptr<Node>> Node::NodesVect;
-std::vector<std::shared_ptr<dummyNode>> dummyNode::newMap;
-
 
 void ReadMap_firstTime() {
 	Node st('1', 0, 0, 1, start);

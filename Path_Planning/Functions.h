@@ -1,16 +1,20 @@
 #pragma once
 #include "ReadMap.h"
 
+
 using Sptr_toNode = std::shared_ptr<Node>;
+using Qe = std::priority_queue<Node, std::vector<Node>, std::greater<Node>>;
+using Deq = std::deque<Sptr_toNode>;
+
 
 // definition of Node's static variables
 float Node::k_m = 0.0f;
+std::vector<std::shared_ptr<Node>> Node::NodesVect;			//std::vector<std::weak_ptr<Node>> Node::NodesVect;
+std::vector<std::shared_ptr<dummyNode>> dummyNode::newMap;
 Sptr_toNode  Node::ptrToStart = nullptr;
 Sptr_toNode  Node::ptrToGoal = nullptr;
 
 
-using Qe = std::priority_queue<Node, std::vector<Node>, std::greater<Node>>;
-using Deq = std::deque<Sptr_toNode>;
 
 /*-------------------------------  Debug functions  -------------------------------*/
 void print_queue(Qe q) {					// debug
@@ -37,8 +41,8 @@ void printAll_g_rhs() {
 }
 
 void print_intVect(std::vector<uint8_t> vect) {
-	for (auto& v : vect) {
-		std::cout << v << std::endl;
+	for (int i = 0; i < vect.size(); ++i) {
+		std::cout << +vect[i] << std::endl;		//+ needed to print unsigned_int8
 	}
 	std::cout << std::endl;
 }

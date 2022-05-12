@@ -1,15 +1,10 @@
 #include "Functions.h"
-//#define DEBUG  //#ifdef DEBUG   #endif
-
-
-
 
 /////////////////////////////////////////////////////////////////////////////////////
-
 std::vector<Sptr_toNode> nonDomSuccs;
 std::vector<Sptr_toNode> solutionPaths;
 
-/////////////////////////////////////////////////////////////////////////////////////
+/*---------------------------------------------------------------------------------*/
 
 	// expanding a state = observe the domination between g and rhs
 	//Ns = node to expand, s1 = nondominated successor of Ns  (s1 = s’ ,  s2 = s’’)
@@ -20,8 +15,7 @@ std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()
 	uint8_t cost_tmp;
 
 	
-	// FIRST phase (from start to goal)
-	//expandingStates.push(*(Node::ptrToStart));  
+	// FIRST phase (from start to goal) 
 	expandingStates.push_back(Node::ptrToStart);
 
 		while ( !expandingStates.empty() ) {
@@ -104,6 +98,7 @@ std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()
 		return solutionPaths;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -117,10 +112,11 @@ std::vector<Sptr_toNode> ChangedNodes;
 
 int main() {
 	ReadMap_firstTime();
-	//for (auto N_ptr : Node::NodesVect) {    // fill (and print) adjacents to each node
-	//	(*N_ptr).findAdjacents();
-	//	(*N_ptr).print_Adjacents(); //debug
-	//}
+		Node::ptrToStart->findAdjacents();
+	for (auto N_ptr : Node::NodesVect) {    // fill (and print) adjacents to each node 
+		(*N_ptr).findAdjacents();
+		(*N_ptr).print_Adjacents(); //debug
+	} //(can't be done in constructor because not all nodes have been registered yet)
 
 // function PLAN()
 	// function Initialize()
@@ -174,12 +170,12 @@ int main() {
 			Node::k_m = Node::k_m + (*(Node::ptrToGoal)).heuristic();  //start node has changed		
 			for (auto cN_ptr : ChangedNodes) {	//= for all changed weight costs of NODES
 				N_inOld = findNodeptr(cN_ptr->X, cN_ptr->Y);
-				N_inOld->cost = cN_ptr->cost;	//= "Update cost" /*11*/
+				N_inOld->cost = cN_ptr->cost;	// = "Update cost" /*11*/
 				N_inOld->update_rhs();			// = "Update Vertex" /*12*/
 				
 				N_inOld->updateAdjacents();		//should I update all the adjacent nodes' rhs??  <===============================
 
-				queue = computeMOPaths(queue); //<===============================================================================
+				queue = computeMOPaths(queue); // ok?  <=========================================================================
 			}
 		}
 		changed_costs = false;
