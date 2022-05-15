@@ -145,7 +145,6 @@ uint8_t compute_cost(Wptr_toNode n1, Wptr_toNode n2) {	// edge-cost derived from
 
 
 
-//std::vector<Sptr_toNode> nonDom_succs(Sptr_toNode N) {		// find non-dominated nodes among successors of the given node	
 std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated nodes among successors of the given node
 	//std::vector<Sptr_toNode> nonDomSuccs_tmp;
 	std::vector<Wptr_toNode> nonDomSuccs_tmp;
@@ -156,10 +155,10 @@ std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated no
 		nonDom_flag = true;
 		cC_out = compute_cost(N, adN) + adN->g;
 		
-		for (auto inN : N->AdjacentsList) {		//paragona con goni altro elemento di AdjacentsList [anche con se stesso!! -> problema?	 
+		for (auto inN : N->AdjacentsList) {		//paragona con ogni altro elemento di AdjacentsList [anche con se stesso!! -> problema?	 
 			cC_in = compute_cost(N, inN) + inN->g;
 			//if (!nonDom_b(cC_out, cC_in)) {
-			if (domination(cC_out, cC_in) != fst_dominates) {			//it is dominated by someone-else!
+			if (domination(cC_out, cC_in) == snd_dominates) {		//it is dominated by someone-else!
 				nonDom_flag = false;
 				break;
 			}

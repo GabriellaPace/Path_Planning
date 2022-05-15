@@ -34,9 +34,9 @@ domin_res domination(float fst, float snd) {		//vectDomination()
 	else if (fst < snd){
 		return snd_dominates;
 	}
-	//else {	//usesell until fst and snd are float
-	//	return nonDomination;
-	//}
+	else {	//useless until fst and snd are float
+		return nonDomination;
+	}
 }
 
 /*
@@ -86,4 +86,4 @@ domin_res multi_dom(float c, std::vector<uint8_t> vectC) {	//compare a cost and 
 		return nonDomination;
 	}
 }
-// ^ there should be a better way to do it!!
+// ^ or is it better with counters? 

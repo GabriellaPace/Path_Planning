@@ -42,7 +42,10 @@ void ReadMap() {
 	//dummyNode n3('3', 2, 0, 5, any);
 	//dummyNode n7('7', 3, 1, 1, any);
 
+	newMap.push_back(std::make_shared<dummyNode>('1', 0, 0, 1, any));	//ASSUMPTION: this fix always happen (so we don't heve 2 "start")
 	newMap.push_back(std::make_shared<dummyNode>('2', 1, 0, 1, start));
 	newMap.push_back(std::make_shared<dummyNode>('3', 2, 0, 5, any));
 	newMap.push_back(std::make_shared<dummyNode>('7', 3, 1, 1, any));
+
+	std::cout << " => RECEIVED NEW MAP\n";
 }

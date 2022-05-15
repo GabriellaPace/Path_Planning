@@ -31,6 +31,7 @@ public:
 	std::vector<Wptr_toNode> AdjacentsList;	//all nodes adjacent to current one (const??)
 	Wptr_toNode predecessor;		//to remove, replaced by parents[]
 	robin_hood::unordered_map < Wptr_toNode, uint8_t > parents;    //key: ptr to node, value: cumulative cost
+	//robin_hood::unordered_map < Wptr_toNode, std::vector<uint8_t> > parents;    //key: ptr to node, value: cumulative cost(s)
 
 ////////////////////////////////////   Constructors   /////////////////////////////////
 	Node() {}		// for pointers etc.
