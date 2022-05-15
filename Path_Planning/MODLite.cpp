@@ -7,92 +7,91 @@ std::vector<Wptr_toNode> solutionPaths;
 /*---------------------------------------------------------------------------------*/
 
 	// expanding a state = observe the domination between g and rhs
-	//Ns = node to expand, s1 = nondominated successor of Ns  (s1 = s’ ,  s2 = s’’)
+	// Ns = node to expand, s1 = nondominated successor of Ns  (s1 = s’ ,  s2 = s’’)
 std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()  
-	//// DECLARATIONS
-	//Deq expandingStates;	// (de)queue of (ptr to) nodes which adjacents should be updated = to expand (FIFO)
-	//std::vector<uint8_t> cumulativeCs;
-	//uint8_t cost_tmp;
+	// DECLARATIONS
+	Deq expandingStates;	// (de)queue of (ptr to) nodes which adjacents should be updated = to expand (FIFO)
+	std::vector<uint8_t> cumulativeCs;
+	uint8_t cost_tmp;
 
-	//
-	//// FIRST phase (from start to goal) 
-	//expandingStates.push_back(ptrToStart);
+	
+	// FIRST phase (from start to goal) 
+	expandingStates.push_back(ptrToStart);
 
-	//	while ( !expandingStates.empty() ) {
-	//		//re-initializations
-	//		cumulativeCs.clear();	// right?? <---------------------------------------------------------------------------------------
+		while ( !expandingStates.empty() ) {
+			//re-initializations
+			cumulativeCs.clear();	// right?? <=======================================================================================
 
-	//		//Java: poll() returns the element at the head of the Queue [returns null if the Queue is empty]
-	//		//Sptr_toNode Ns = expandingStates.front();
-	//		Wptr_toNode Ns = expandingStates.front();
-	//		expandingStates.pop_front();
+			//Java: poll() returns the element at the head of the Queue [returns null if the Queue is empty]
+			Wptr_toNode Ns = expandingStates.front();
+			expandingStates.pop_front();
 
-	//		//nonDomSuccs = nonDom_[s' in succ(Ns)](sum(c(Ns, s’), g(s’))   <->   find non-dominated successors, wrt multiobjective c+g
-	//		nonDomSuccs = nonDom_succs(Ns);
-	//		
-	//		for (auto s1 : nonDomSuccs) {
-	//			if ((*Ns).parents.empty()) {							// if Ns doesn't have any parent (only iff s=Start): 		
-	//				(*s1).parents[Ns] = compute_cost(Ns, s1);	// ^ for sure s' does not have any parent as well!
-	//																	// ^ so Ns is added as a parent of s' with corresponding cost c(s, s').
-	//			}
-	//			else {													// if Ns does have predefined parents
-	//				/*10*/
-	//				cost_tmp = compute_cost(Ns, s1);
-	//				for (auto& [s1_ptr, s1_cost] : (*Ns).parents) {
-	//					cumulativeCs.push_back(cost_tmp + s1_cost);
-	//				}
+			//nonDomSuccs = nonDom_[s' in succ(Ns)](sum(c(Ns, s’), g(s’))   <->   find non-dominated successors, wrt multiobjective c+g
+			nonDomSuccs = nonDom_succs(Ns);
+			
+			for (auto s1 : nonDomSuccs) {
+				if ((*Ns).parents.empty()) {							// if Ns doesn't have any parent (only iff s=Start): 		
+					(*s1).parents[Ns] = compute_cost(Ns, s1);	// ^ for sure s' does not have any parent as well!
+																		// ^ so Ns is added as a parent of s' with corresponding cost c(s, s').
+				}
+				else {													// if Ns does have predefined parents
+					/*10*/
+					cost_tmp = compute_cost(Ns, s1);
+					for (auto& [s1_ptr, s1_cost] : (*Ns).parents) {
+						cumulativeCs.push_back(cost_tmp + s1_cost);
+					}
 
-	//				/*11-12*/
-	//				if ((*s1).parents.empty()) {
-	//					(*s1).parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeC);
-	//												// [!!!!] ASSUMING THAT HERE WE ALWAYS HAVE ONLY ONE VALUE IN cumulativeCs 
+					/*11-12*/
+					if ((*s1).parents.empty()) {
+						(*s1).parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeC);
+													// [!!!!] ASSUMING THAT HERE WE ALWAYS HAVE ONLY ONE VALUE IN cumulativeCs 
 
-	//						std::cout << "cumulativeCs:\n"; // debug
-	//						print_intVect(cumulativeCs); // debug
-	//				}
-	//				else {
-	//			//		for (auto& [s2_ptr, s2_cost] : (*s1).parents) {		//for (auto s'' : s'.parents() ) {  
-	//			//			if (s2_cost >= cumulativeC) {    
-	//			//			//if ( equals(s1.parents(s2), cumulativeC) || completelyDominates(s1.parents(s2), cumulativeC) ) {
-	//			//				break;
-	//			//			}
-	//			//			else if (s2_cost < cumulativeC) {
-	//			//			//else if ( completelyDominates(cumulativeC, s1.parents(s2)) ) {
-	//			//				(*s1).parents.erase(s2_ptr);		//s1.parents().remove(s2);
-	//			//				(*s1).parents[Ns] = cumulativeC;	//s1.parents().put(s, cumulativeC);
-	//			//			}
-	//			//			else {
-	//			//		//		for (auto cC : cumulativeC) {
-	//			//		//			for (auto eC : (*Ns).parents(s)) {
-	//			//		//				if (eC.equals(cC) || eC.dominates(cC)) {  //OR
-	//			//		//					cumulativeC.remove(cC);
-	//			//		//					break;
-	//			//		//				}
-	//			//		//				else if (cC.dominates(eC)) {
-	//			//		//					s1.parents(s2).remove(eC);
-	//			//		//					break;
-	//			//		//				}
-	//			//		//			}
-	//			//		//			if (s1.parents(s2) == null) {
-	//			//		//				s1.parents().remove(s2);
-	//			//		//			}
-	//			//		//		}
-	//			//		//		if (cumulativeC != null) {
-	//			//		//			s1.parents().put(s, cumulativeC);
-	//			//		//		}
-	//			//			}
-	//			//		}
-	//				}
-	//			}
+							std::cout << "cumulativeCs for parents of ";	Ns->print_Coord();	std::cout << std::endl; // debug
+							print_intVect(cumulativeCs); // debug
+					}
+					else {
+						for (auto& [s2_ptr, s2_cost] : (*s1).parents) {		//for (auto s'' : s'.parents() ) {  
+							if (multi_dom(s2_cost, cumulativeCs) == areEqual || multi_dom(s2_cost, cumulativeCs) == fst_dominates){  
+							//if ( equals(s1.parents(s2), cumulativeC) || completelyDominates(s1.parents(s2), cumulativeC) ) {
+								break;
+							}
+							else if (multi_dom(s2_cost, cumulativeCs) == snd_dominates) {
+							//else if ( completelyDominates(cumulativeC, s1.parents(s2)) ) {
+								(*s1).parents.erase(s2_ptr);		//s1.parents().remove(s2);
+								(*s1).parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeC); <=========================
+							}
+							else {
+						//		for (auto cC : cumulativeC) {
+						//			for (auto eC : (*Ns).parents(s)) {
+						//				if (eC.equals(cC) || eC.dominates(cC)) {  //OR
+						//					cumulativeC.remove(cC);
+						//					break;
+						//				}
+						//				else if (cC.dominates(eC)) {
+						//					s1.parents(s2).remove(eC);
+						//					break;
+						//				}
+						//			}
+						//			if (s1.parents(s2) == null) {
+						//				s1.parents().remove(s2);
+						//			}
+						//		}
+						//		if (cumulativeC != null) {
+						//			s1.parents().put(s, cumulativeC);
+						//		}
+							}
+						}
+					}
+				}
 
-	//			//if (s1.parents.contains(s) && !expandingStates.contains(s1) )  =  Ns is among s' parents  and  s' is not already in the expanding queue
-	//			if ( ((*s1).parents.find(Ns) != (*s1).parents.end())  &&  
-	//				 (find(expandingStates.begin(), expandingStates.end(), s1) == expandingStates.end()) ) {
-	//			
-	//				expandingStates.push_back(s1);
-	//			}
-	//		}
-	//	}
+				//if (s1.parents.contains(s) && !expandingStates.contains(s1) )  =  Ns is among s' parents  and  s' is not already in the expanding queue
+				if ( ((*s1).parents.find(Ns) != (*s1).parents.end())  &&  
+					 (find(expandingStates.begin(), expandingStates.end(), s1) == expandingStates.end()) ) {
+				
+					expandingStates.push_back(s1);
+				}
+			}
+		}
 
 		// SECOND phase (from goal to start)
 		//solutionPaths = construct paths recursively traversing parents;
@@ -191,10 +190,7 @@ int main() {
 		print_queue(queue);
 
 
-	//// DELETE ALL objects
-	//for (auto N_ptr : NodesVect) {
-	//	delete &N_ptr;
-	//	N_ptr = nullptr;
-	//}
+	// DELETE ALL objects
+		//shared_ptr are automatically deleted when out of scope (??) -> so no need to do it manually 
 	std::cin.get();
 }

@@ -1,45 +1,46 @@
 #pragma once
 #include <iostream>
 #include <cmath>
-#include <limits>		// for min/max
-#include <memory> //for: shared_from_this()
+#include <limits> // for min/max
+//#include <memory> //for: shared_from_this()
 #include <queue>
 #include <deque>
 //#include <list>
 #include <vector>
 #include <string> // maybe only for debug ?
 //#include <valarray> //for: parents.values().sum()
-//#include <numeric> //for: std::accumulate()
 #include "robin_hood.h" //faster than <unordered_map>
 
 //#define DEBUG  //#ifdef DEBUG   #endif
+//all_of  -  none_of  -  any_of  -  find_if
 
 
 float nonDom_2(float g, float rhs) {		// nonDom = min			
 	return std::min(g, rhs);		// still considering single g and rhs	
 }
 
-bool nonDom_b(float a, float b) {
-	if (a <= b) {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
 
-
-/*
-//  is greater than : completely dominates
-//	is smaller than : is completely dominated by
-//	is equal to	    : is multiobjetively euqual
-//					  nondomination
-
-enum comparResult {
-	g_isGreater = 0, rhs_isGreater = 1, g_rhs_areEqual = 2, g_rhs_nonDom = 3
+enum domin_res {
+	fst_dominates = 0, snd_dominates = 1, areEqual = 2, nonDomination = 3
 };
 
-comparResult vectComparison(std::vector<float> g, std::vector<float> rhs) {		// vectorial g and rhs [scalabile!]
+domin_res domination(float fst, float snd) {		//vectDomination()
+	if (fst > snd) {
+		return fst_dominates;
+	}
+	else if (fst == snd) {
+		return areEqual;
+	}
+	else if (fst < snd){
+		return snd_dominates;
+	}
+	//else {	//usesell until fst and snd are float
+	//	return nonDomination;
+	//}
+}
+
+/*
+domin_res vectDomination(std::vector<float> g, std::vector<float> rhs) {		// vectorial g and rhs [scalabile!]
 	int countG = 0;
 	int countL = 0;
 	int countE = 0;
@@ -57,16 +58,32 @@ comparResult vectComparison(std::vector<float> g, std::vector<float> rhs) {		// 
 	}
 
 	if ( (countG + countE) == g.size()) {		// >=
-		return g_isGreater;
+		return fst_dominates;
 	}
 	else if ((countL + countE) == g.size()) {	// <=
-		return rhs_isGreater;
+		return snd_dominates;
 	}
 	else if (countE == g.size()) {
-		return g_rhs_areEqual;
+		return areEqual;
 	}
 	else {
-		return g_rhs_nonDom;
+		return nonDomination;
 	}
 }
 */
+
+domin_res multi_dom(float c, std::vector<uint8_t> vectC) {	//compare a cost and a vector of costs
+	if (std::all_of(vectC.begin(), vectC.end(), [&c](const uint8_t& v) {return (domination(c, v) == fst_dominates); } )) {
+		return fst_dominates;
+	}
+	else if (std::all_of(vectC.begin(), vectC.end(), [&c](const uint8_t& v) {return (domination(c, v) == areEqual); })) {
+		return areEqual;
+	}
+	else if (std::all_of(vectC.begin(), vectC.end(), [&c](const uint8_t& v) {return (domination(c, v) == snd_dominates); })) {
+		return snd_dominates;
+	}
+	else {
+		return nonDomination;
+	}
+}
+// ^ there should be a better way to do it!!

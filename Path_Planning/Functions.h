@@ -158,7 +158,8 @@ std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated no
 		
 		for (auto inN : N->AdjacentsList) {		//paragona con goni altro elemento di AdjacentsList [anche con se stesso!! -> problema?	 
 			cC_in = compute_cost(N, inN) + inN->g;
-			if (!nonDom_b(cC_out, cC_in)) {			//it is dominated by someone-else!
+			//if (!nonDom_b(cC_out, cC_in)) {
+			if (domination(cC_out, cC_in) != fst_dominates) {			//it is dominated by someone-else!
 				nonDom_flag = false;
 				break;
 			}
