@@ -120,7 +120,8 @@ int main() {
 		//ptrToStart->findAdjacents();
 		ptrToStart->g = 500.00f;
 	for (auto N_ptr : NodesVect) {    // fill (and print) adjacents to each node 
-		(*N_ptr).findAdjacents();
+		//(*N_ptr).findAdjacents();
+		findAdjacents(N_ptr);
 		(*N_ptr).print_Adjacents(); //debug
 	} //(can't be done in constructor because not all nodes have been registered yet)
 
@@ -128,7 +129,8 @@ int main() {
 	// function Initialize()
 	for (auto N_ptr : NodesVect) {
 		if ( (*N_ptr).nodeType == goal ) {
-			(*N_ptr).calculateKey();
+			//(*N_ptr).calculateKey();
+			calculateKey(N_ptr);
 			queue.push(*N_ptr);
 		}
 	}
@@ -173,13 +175,16 @@ int main() {
 		}
 
 		if (changed_costs) {
-			Node::k_m = Node::k_m + (*(ptrToGoal)).heuristic();  //start node has changed		
+			//Node::k_m = Node::k_m + (*(ptrToGoal)).heuristic();  //start node has changed		
+			k_m = k_m + heuristic(ptrToGoal);  //start node has changed
 			for (auto cN_ptr : ChangedNodes) {	//= for all changed weight costs of NODES
 				N_inOld = findNodeptr(cN_ptr->X, cN_ptr->Y);
 				N_inOld->cost = cN_ptr->cost;	// = "Update cost" /*11*/
-				N_inOld->update_rhs();			// = "Update Vertex" /*12*/
+				//N_inOld->update_rhs();			// = "Update Vertex" /*12*/
+				update_rhs(N_inOld);			// = "Update Vertex" /*12*/
 				
-				N_inOld->updateAdjacents();		//should I update all the adjacent nodes' rhs??  <===============================
+				//N_inOld->updateAdjacents();		//should I update all the adjacent nodes' rhs??  <===============================
+				updateAdjacents(N_inOld);		//should I update all the adjacent nodes' rhs??  <===============================
 
 				queue = computeMOPaths(queue); // ok?  <=========================================================================
 			}

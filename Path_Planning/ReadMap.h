@@ -1,4 +1,4 @@
-#pragma oncenewMap
+#pragma once
 #include "ClassNode.h"
 
 using Sptr_toNode = std::shared_ptr<Node>;
@@ -8,6 +8,7 @@ std::vector<std::shared_ptr<Node>> NodesVect;	// vector of shared pointers to No
 std::vector<std::shared_ptr<dummyNode>> newMap;	// vector of shared pointers to dummyNodes
 Wptr_toNode  ptrToStart = nullptr;
 Wptr_toNode  ptrToGoal = nullptr;
+float k_m = 0;
 
 void ReadMap_firstTime() {
 	//Node st('1', 0, 0, 1, start);

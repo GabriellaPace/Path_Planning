@@ -8,19 +8,14 @@ enum NodeTypes {
 
 
 class Node {			// Node = state in Koeing
-	using Sptr_toNode = std::shared_ptr<Node>;
 	using Wptr_toNode = std::shared_ptr<Node>;
-
-	// declatarions (not definitions)
-	std::vector<Sptr_toNode> NodesVect;
-	Wptr_toNode ptrToStart, ptrToGoal;
 	
 public:
 	////// common to all istances: ////////////////////////
 	//static std::vector<Sptr_toNode> NodesVect;	// vector of shared pointers to Nodes - def. in ReadMap.h
-	static float k_m;			   //def. in Functions.h
+	//static float k_m;			   //def. in Functions.h
 	//static Wptr_toNode ptrToStart; //def. in Functions.h
-	//static Sptr_toNode ptrToGoal;  //def. in Functions.h
+	//static Wptr_toNode ptrToGoal;  //def. in Functions.h
 	/*---------------------------------------------------*/
 	char Name; //debug
 
@@ -33,11 +28,8 @@ public:
 
 	std::pair<float, float> key;
 
-	//std::vector<Sptr_toNode> AdjacentsList;	//all nodes adjacent to current one (const??)
 	std::vector<Wptr_toNode> AdjacentsList;	//all nodes adjacent to current one (const??)
-	//std::shared_ptr<Node> predecessor;	//to remove, replaced by parents[]
 	Wptr_toNode predecessor;		//to remove, replaced by parents[]
-	//robin_hood::unordered_map < Sptr_toNode, uint8_t > parents;    //key: ptr to node, value: cumulative cost
 	robin_hood::unordered_map < Wptr_toNode, uint8_t > parents;    //key: ptr to node, value: cumulative cost
 
 ////////////////////////////////////   Constructors   /////////////////////////////////
@@ -50,9 +42,9 @@ public:
 		cost = ec;
 		nodeType = flag;
 
-		if (nodeType == start) {
-			//ptrToStart = this;
-		}
+		//if (nodeType == start) {
+		//	ptrToStart = this;
+		//}
 
 		g = std::numeric_limits<float>::infinity();
 
@@ -97,69 +89,70 @@ public:
 	}
 
 /////////////////////////////////////   Methods   //////////////////////////////////
-	void calculateKey() {
-		key.second = nonDom_2(g, rhs);
-		key.first = key.second + heuristic() + k_m;
-	}
-
-	int heuristic() {		// shortest aereal path (ignoring the grid)
-		int X_start = (*ptrToStart).X;
-		int Y_start = (*ptrToStart).Y;
-		
-		int h = (int)((sqrt(pow((X - X_start), 2.0f) + pow((Y - Y_start), 2.0f)))*10);  //pow(base, power)
-		//std::cout << "Heuristic of node [" << X << "," << Y << "] : " << h ;
-		//std::cout << "   (-> wrt start node with coord: [" << X_start << "," << Y_start << "] )" << std::endl << std::endl;
-		return h;
-	}
-/*--------------------------------------------------------------------------------*/
-	void findAdjacents() {
-		int oriz, vert;
-		oriz = X + 0;  vert = Y + 1;   addAdj(oriz, vert);
-		oriz = X + 0;  vert = Y - 1;   addAdj(oriz, vert);
-		oriz = X + 1;  vert = Y + 0;   addAdj(oriz, vert);
-		oriz = X - 1;  vert = Y + 0;   addAdj(oriz, vert);
-		oriz = X + 1;  vert = Y + 1;   addAdj(oriz, vert);
-		oriz = X - 1;  vert = Y + 1;   addAdj(oriz, vert);
-		oriz = X + 1;  vert = Y - 1;   addAdj(oriz, vert);
-		oriz = X - 1;  vert = Y - 1;   addAdj(oriz, vert);
-		//^ remove redundant definitions
-	}
-
-	void addAdj(int oriz, int vert) {
-		auto it = find_if(NodesVect.begin(), NodesVect.end(), [&oriz, &vert](const Sptr_toNode& obj) {return ((*obj).X == oriz && (*obj).Y == vert); });
-		if (it != NodesVect.end()) {
-			auto idx = std::distance(NodesVect.begin(), it);
-			AdjacentsList.push_back(NodesVect[idx]);
-		}
-	}
-/*--------------------------------------------------------------------------------*/
-	void updateAdjacents() {
-		for (auto A_ptr : AdjacentsList) {   //update each node adjacent to the modified one
-			(*A_ptr).update_rhs();
-		}
-	}
-
-	void update_rhs() {    //function UPDATE_VERTEX(u)
-		int X_start = (*ptrToStart).X;
-		int Y_start = (*ptrToStart).Y;
-
-		float current_min_rhs = rhs;
-		//std::shared_ptr<Node> current_pred_ptr;
-		Wptr_toNode current_pred_ptr;
-
-		for (auto A_ptr : AdjacentsList) {   //search among all the adjacent nodes the best one to come from
-			float d = (float)((sqrt(pow((X - (*A_ptr).X), 2.0f) + pow((Y - (*A_ptr).Y), 2.0f))) * 10);
-				//^ distance btw current node and selected adjacent one
-			float tmp_rhs = (*A_ptr).g + d;    //the rhs that this node would have if updated
-			if (tmp_rhs < current_min_rhs) {   //actually update it only if better than old one
-				current_min_rhs = tmp_rhs;
-				current_pred_ptr = A_ptr;
-			}
-		}
-		rhs = current_min_rhs;
-		predecessor = current_pred_ptr; //to remove
-		parents[current_pred_ptr];// = compute_cost(std::make_shared<Node>(*this), current_pred_ptr);
-	}
+//	void calculateKey() {
+//		key.second = nonDom_2(g, rhs);
+//		key.first = key.second + heuristic() + k_m;
+//	}
+//
+//	int heuristic() {		// shortest aereal path (ignoring the grid)
+//		int X_start = (*ptrToStart).X;
+//		int Y_start = (*ptrToStart).Y;
+//		
+//		int h = (int)((sqrt(pow((X - X_start), 2.0f) + pow((Y - Y_start), 2.0f)))*10);  //pow(base, power)
+//		//std::cout << "Heuristic of node [" << X << "," << Y << "] : " << h ;
+//		//std::cout << "   (-> wrt start node with coord: [" << X_start << "," << Y_start << "] )" << std::endl << std::endl;
+//		return h;
+//	}
+///*--------------------------------------------------------------------------------*/
+//	void findAdjacents() {
+//		int oriz, vert;
+//		oriz = X + 0;  vert = Y + 1;   addAdj(oriz, vert);
+//		oriz = X + 0;  vert = Y - 1;   addAdj(oriz, vert);
+//		oriz = X + 1;  vert = Y + 0;   addAdj(oriz, vert);
+//		oriz = X - 1;  vert = Y + 0;   addAdj(oriz, vert);
+//		oriz = X + 1;  vert = Y + 1;   addAdj(oriz, vert);
+//		oriz = X - 1;  vert = Y + 1;   addAdj(oriz, vert);
+//		oriz = X + 1;  vert = Y - 1;   addAdj(oriz, vert);
+//		oriz = X - 1;  vert = Y - 1;   addAdj(oriz, vert);
+//		//^ remove redundant definitions
+//	}
+//
+//	void addAdj(int oriz, int vert) {
+//		auto it = find_if(NodesVect.begin(), NodesVect.end(), [&oriz, &vert](const Sptr_toNode& obj) {return ((*obj).X == oriz && (*obj).Y == vert); });
+//		if (it != NodesVect.end()) {
+//			auto idx = std::distance(NodesVect.begin(), it);
+//			AdjacentsList.push_back(NodesVect[idx]);
+//		}
+//	}
+///*--------------------------------------------------------------------------------*/
+//	void updateAdjacents() {
+//		for (auto A_ptr : AdjacentsList) {   //update each node adjacent to the modified one
+//			//(*A_ptr).update_rhs();
+//			update_rhs(A_ptr);
+//		}
+//	}
+//
+//	void update_rhs() {    //function UPDATE_VERTEX(u)
+//		int X_start = (*ptrToStart).X;
+//		int Y_start = (*ptrToStart).Y;
+//
+//		float current_min_rhs = rhs;
+//		//std::shared_ptr<Node> current_pred_ptr;
+//		Wptr_toNode current_pred_ptr;
+//
+//		for (auto A_ptr : AdjacentsList) {   //search among all the adjacent nodes the best one to come from
+//			float d = (float)((sqrt(pow((X - (*A_ptr).X), 2.0f) + pow((Y - (*A_ptr).Y), 2.0f))) * 10);
+//				//^ distance btw current node and selected adjacent one
+//			float tmp_rhs = (*A_ptr).g + d;    //the rhs that this node would have if updated
+//			if (tmp_rhs < current_min_rhs) {   //actually update it only if better than old one
+//				current_min_rhs = tmp_rhs;
+//				current_pred_ptr = A_ptr;
+//			}
+//		}
+//		rhs = current_min_rhs;
+//		predecessor = current_pred_ptr; //to remove
+//		parents[current_pred_ptr];// = compute_cost(std::make_shared<Node>(*this), current_pred_ptr);
+//	}
 
 //////////////////////////////////   debug Methods   ////////////////////////////////
 	void print_Coord() {
