@@ -179,7 +179,7 @@ std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated no
 Qe computeMOPaths(Qe queue) {  //function COMPUTE_MO_PATHS()	
 	//(*(ptrToStart)).calculateKey();
 	calculateKey(ptrToStart);
-	while (!queue.empty() && *(ptrToStart) < queue.top()) {	// = start.key dominated the top key in the queue
+	while (!queue.empty() && *ptrToStart > queue.top()) {	// = start.key dominates the top key in the queue
 		Node deqN_wOldKey = queue.top();  //pick top one (deqN = de-queued Node)
 		queue.pop();					  //and then remove it
 
