@@ -2,17 +2,18 @@
 #include "ReadMap.h"
 
 
-using Sptr_toNode = std::shared_ptr<Node>;
 using Qe = std::priority_queue<Node, std::vector<Node>, std::greater<Node>>;
-using Deq = std::deque<Sptr_toNode>;
+//using Deq = std::deque<Sptr_toNode>;
+using Deq = std::deque<Wptr_toNode>;
 
 
 // definition of Node's static variables
 float Node::k_m = 0.0f;
-std::vector<std::shared_ptr<Node>> Node::NodesVect;			//std::vector<std::weak_ptr<Node>> Node::NodesVect;
-std::vector<std::shared_ptr<dummyNode>> dummyNode::newMap;
-Sptr_toNode  Node::ptrToStart = nullptr;
-Sptr_toNode  Node::ptrToGoal = nullptr;
+//std::vector<std::shared_ptr<Node>> Node::NodesVect;			//std::vector<std::weak_ptr<Node>> Node::NodesVect;
+//std::vector<std::shared_ptr<dummyNode>> newMap;
+//Sptr_toNode  Node::ptrToStart = nullptr;
+//Sptr_toNode  Node::ptrToGoal = nullptr;
+	//declatation and definition
 
 
 
@@ -34,7 +35,7 @@ void print_queue(Qe q) {					// debug
 
 void printAll_g_rhs() {
 	std::cout << "g and rhs for all current nodes:\n";
-	for (auto N_ptr : Node::NodesVect) {
+	for (auto N_ptr : NodesVect) {
 		(*N_ptr).print_g_rhs();
 	}
 	std::cout << std::endl;
@@ -48,15 +49,18 @@ void print_intVect(std::vector<uint8_t> vect) {
 }
 
 /*----------------------------------  Functions  ----------------------------------*/
-Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
+//Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
+Wptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
 	int x = xx;
 	int y = yy;
 	int idx; // = -1;   //<- this should raise an error if used in a vector
-	auto it = find_if(Node::NodesVect.begin(), Node::NodesVect.end(),
-		[&x, &y](const std::shared_ptr<Node>& obj) {return ((*obj).X == x && (*obj).Y == y); });
-	if (it != Node::NodesVect.end()) {
-		idx = (int)std::distance(Node::NodesVect.begin(), it);
-		return Node::NodesVect[idx];
+	//auto it = find_if(NodesVect.begin(), NodesVect.end(),
+		//[&x, &y](const std::shared_ptr<Node>& obj) {return ((*obj).X == x && (*obj).Y == y); });
+	auto it = find_if(NodesVect.begin(), NodesVect.end(),
+		[&x, &y](const Wptr_toNode& obj) {return ((*obj).X == x && (*obj).Y == y); });
+	if (it != NodesVect.end()) {
+		idx = (int)std::distance(NodesVect.begin(), it);
+		return NodesVect[idx];
 	}
 	else {
 		return nullptr;
@@ -65,14 +69,17 @@ Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired 
 
 
 
-uint8_t compute_cost(Sptr_toNode n1, Sptr_toNode n2) {	// edge-cost derived from node-costs
+//uint8_t compute_cost(Sptr_toNode n1, Sptr_toNode n2) {	// edge-cost derived from node-costs
+uint8_t compute_cost(Wptr_toNode n1, Wptr_toNode n2) {	// edge-cost derived from node-costs
 	return std::max(n1->cost, n2->cost);	//<- as done for Theta* Planner in Nav2
 }
 
 
 
-std::vector<Sptr_toNode> nonDom_succs(Sptr_toNode N) {		// find non-dominated nodes among successors of the given node		
-	std::vector<Sptr_toNode> nonDomSuccs_tmp;
+//std::vector<Sptr_toNode> nonDom_succs(Sptr_toNode N) {		// find non-dominated nodes among successors of the given node	
+std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated nodes among successors of the given node
+	//std::vector<Sptr_toNode> nonDomSuccs_tmp;
+	std::vector<Wptr_toNode> nonDomSuccs_tmp;
 	bool nonDom_flag;
 	float cC_out, cC_in;  // still considering single g and rhs -> will become vectors //cC = cumulative cost (outer/inner loop)
 
@@ -99,12 +106,13 @@ std::vector<Sptr_toNode> nonDom_succs(Sptr_toNode N) {		// find non-dominated no
 
 
 Qe computeMOPaths(Qe queue) {  //function COMPUTE_MO_PATHS()	
-	(*(Node::ptrToStart)).calculateKey();
-	while (!queue.empty() && *(Node::ptrToStart) < queue.top()) {	// = start.key dominated the top key in the queue
+	(*(ptrToStart)).calculateKey();
+	while (!queue.empty() && *(ptrToStart) < queue.top()) {	// = start.key dominated the top key in the queue
 		Node deqN_wOldKey = queue.top();  //pick top one (deqN = de-queued Node)
 		queue.pop();					  //and then remove it
 
-		Sptr_toNode deqN_ptr = findNodeptr(deqN_wOldKey.X, deqN_wOldKey.Y);	 //ptr to de-queued node	
+		//Sptr_toNode deqN_ptr = findNodeptr(deqN_wOldKey.X, deqN_wOldKey.Y);	 //ptr to de-queued node
+		Wptr_toNode deqN_ptr = findNodeptr(deqN_wOldKey.X, deqN_wOldKey.Y);	 //ptr to de-queued node
 		(*deqN_ptr).calculateKey();
 
 		if (deqN_wOldKey < *deqN_ptr) {					 //put it back in queue with new key
@@ -124,7 +132,7 @@ Qe computeMOPaths(Qe queue) {  //function COMPUTE_MO_PATHS()
 			(*deqN_ptr).updateAdjacents();
 		}
 
-		(*(Node::ptrToStart)).calculateKey(); //for next loop
+		(*(ptrToStart)).calculateKey(); //for next loop
 	}
 	std::cout << " => Computed MO Paths.\n\n";
 	return queue;

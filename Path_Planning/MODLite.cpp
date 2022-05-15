@@ -1,14 +1,17 @@
 #include "Functions.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
-std::vector<Sptr_toNode> nonDomSuccs;
-std::vector<Sptr_toNode> solutionPaths;
+//std::vector<Sptr_toNode> nonDomSuccs;
+//std::vector<Sptr_toNode> solutionPaths;
+std::vector<Wptr_toNode> nonDomSuccs;
+std::vector<Wptr_toNode> solutionPaths;
 
 /*---------------------------------------------------------------------------------*/
 
 	// expanding a state = observe the domination between g and rhs
 	//Ns = node to expand, s1 = nondominated successor of Ns  (s1 = s’ ,  s2 = s’’)
-std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()  
+//std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()  
+std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()  
 	// DECLARATIONS
 	Deq expandingStates;	// (de)queue of (ptr to) nodes which adjacents should be updated = to expand (FIFO)
 	std::vector<uint8_t> cumulativeCs;
@@ -16,14 +19,15 @@ std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()
 
 	
 	// FIRST phase (from start to goal) 
-	expandingStates.push_back(Node::ptrToStart);
+	expandingStates.push_back(ptrToStart);
 
 		while ( !expandingStates.empty() ) {
 			//re-initializations
 			cumulativeCs.clear();	// right?? <---------------------------------------------------------------------------------------
 
 			//Java: poll() returns the element at the head of the Queue [returns null if the Queue is empty]
-			Sptr_toNode Ns = expandingStates.front();
+			//Sptr_toNode Ns = expandingStates.front();
+			Wptr_toNode Ns = expandingStates.front();
 			expandingStates.pop_front();
 
 			//nonDomSuccs = nonDom_[s' in succ(Ns)](sum(c(Ns, s’), g(s’))   <->   find non-dominated successors, wrt multiobjective c+g
@@ -106,21 +110,23 @@ std::vector<Sptr_toNode> generateMOPaths(){  //function GENERATE_MO_PATHS()
 //std::priority_queue<Node, std::vector<Node>, CompareKey >  queue;
 std::priority_queue<Node, std::vector<Node>, std::greater<Node>>  queue;   // filled with Nodes, NOT ptr_to_Nodes !!
 bool changed_costs = false;
-Sptr_toNode N_inOld = nullptr;
-std::vector<Sptr_toNode> ChangedNodes;
-
+//Sptr_toNode N_inOld = nullptr;
+Wptr_toNode N_inOld = nullptr;
+//std::vector<Sptr_toNode> ChangedNodes;
+std::vector<Wptr_toNode> ChangedNodes;
 
 int main() {
 	ReadMap_firstTime();
-		Node::ptrToStart->findAdjacents();
-	for (auto N_ptr : Node::NodesVect) {    // fill (and print) adjacents to each node 
+		//ptrToStart->findAdjacents();
+		ptrToStart->g = 500.00f;
+	for (auto N_ptr : NodesVect) {    // fill (and print) adjacents to each node 
 		(*N_ptr).findAdjacents();
 		(*N_ptr).print_Adjacents(); //debug
 	} //(can't be done in constructor because not all nodes have been registered yet)
 
 // function PLAN()
 	// function Initialize()
-	for (auto N_ptr : Node::NodesVect) {
+	for (auto N_ptr : NodesVect) {
 		if ( (*N_ptr).nodeType == goal ) {
 			(*N_ptr).calculateKey();
 			queue.push(*N_ptr);
@@ -142,11 +148,11 @@ int main() {
 		}
 		
 		ReadMap();	//second map  (//wait for any weight cost to change)
-		for (auto d_ptr : dummyNode::newMap) {
+		for (auto d_ptr : newMap) {
 			N_inOld = findNodeptr((*d_ptr).X, (*d_ptr).Y);
 			if (N_inOld == nullptr) {	//Node not found
 				std::cout << " The coordinates are not in the old map, so a new node will be created.\n\n";
-				Node n9(d_ptr->Name, d_ptr->X, d_ptr->Y, d_ptr->cost, d_ptr->nodeType);  //define new Node
+				Node n9(d_ptr->Name, d_ptr->X, d_ptr->Y, d_ptr->cost, d_ptr->nodeType);  //define new Node <=======================
 				changed_costs = true;
 			}
 			else {						//Node found
@@ -158,16 +164,16 @@ int main() {
 			
 			if (changed_costs) {
 				if ((*d_ptr).nodeType == start) {
-					Node::ptrToStart = findNodeptr((*d_ptr).X, (*d_ptr).Y);
+					ptrToStart = findNodeptr((*d_ptr).X, (*d_ptr).Y);
 				}
 				if ((*d_ptr).nodeType == goal) {
-					Node::ptrToGoal = findNodeptr((*d_ptr).X, (*d_ptr).Y);
+					ptrToGoal = findNodeptr((*d_ptr).X, (*d_ptr).Y);
 				}
 			}
 		}
 
 		if (changed_costs) {
-			Node::k_m = Node::k_m + (*(Node::ptrToGoal)).heuristic();  //start node has changed		
+			Node::k_m = Node::k_m + (*(ptrToGoal)).heuristic();  //start node has changed		
 			for (auto cN_ptr : ChangedNodes) {	//= for all changed weight costs of NODES
 				N_inOld = findNodeptr(cN_ptr->X, cN_ptr->Y);
 				N_inOld->cost = cN_ptr->cost;	// = "Update cost" /*11*/
@@ -189,7 +195,7 @@ int main() {
 
 
 	//// DELETE ALL objects
-	//for (auto N_ptr : Node::NodesVect) {
+	//for (auto N_ptr : NodesVect) {
 	//	delete &N_ptr;
 	//	N_ptr = nullptr;
 	//}

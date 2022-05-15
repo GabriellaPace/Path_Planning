@@ -9,13 +9,18 @@ enum NodeTypes {
 
 class Node {			// Node = state in Koeing
 	using Sptr_toNode = std::shared_ptr<Node>;
+	using Wptr_toNode = std::shared_ptr<Node>;
+
+	// declatarions (not definitions)
+	std::vector<Sptr_toNode> NodesVect;
+	Wptr_toNode ptrToStart, ptrToGoal;
+	
 public:
 	////// common to all istances: ////////////////////////
-	static std::vector<Sptr_toNode> NodesVect;	// vector of shared pointers to Nodes - def. in ReadMap.h
-	//static std::vector<std::weak_ptr<Node>> NodesVect;
+	//static std::vector<Sptr_toNode> NodesVect;	// vector of shared pointers to Nodes - def. in ReadMap.h
 	static float k_m;			   //def. in Functions.h
-	static Sptr_toNode ptrToStart; //def. in Functions.h
-	static Sptr_toNode ptrToGoal;  //def. in Functions.h
+	//static Wptr_toNode ptrToStart; //def. in Functions.h
+	//static Sptr_toNode ptrToGoal;  //def. in Functions.h
 	/*---------------------------------------------------*/
 	char Name; //debug
 
@@ -28,9 +33,12 @@ public:
 
 	std::pair<float, float> key;
 
-	std::vector<Sptr_toNode> AdjacentsList;	//all nodes adjacent to current one (const??)
-	std::shared_ptr<Node> predecessor; //to remove, replaced by parents[]
-	robin_hood::unordered_map < Sptr_toNode, uint8_t > parents;    //key: ptr to node, value: cumulative cost
+	//std::vector<Sptr_toNode> AdjacentsList;	//all nodes adjacent to current one (const??)
+	std::vector<Wptr_toNode> AdjacentsList;	//all nodes adjacent to current one (const??)
+	//std::shared_ptr<Node> predecessor;	//to remove, replaced by parents[]
+	Wptr_toNode predecessor;		//to remove, replaced by parents[]
+	//robin_hood::unordered_map < Sptr_toNode, uint8_t > parents;    //key: ptr to node, value: cumulative cost
+	robin_hood::unordered_map < Wptr_toNode, uint8_t > parents;    //key: ptr to node, value: cumulative cost
 
 ////////////////////////////////////   Constructors   /////////////////////////////////
 	Node() {}		// for pointers etc.
@@ -43,13 +51,13 @@ public:
 		nodeType = flag;
 
 		if (nodeType == start) {
-			ptrToStart = std::make_shared<Node>(*this);
+			//ptrToStart = this;
 		}
 
 		g = std::numeric_limits<float>::infinity();
 
 		if (nodeType == goal) {
-			ptrToGoal = std::make_shared<Node>(*this);
+			//ptrToGoal = this;
 			rhs = 0.0f;
 		}
 		else {
@@ -59,7 +67,6 @@ public:
 		key.first = -1;
 		key.second = -1;
 		predecessor = nullptr;
-		NodesVect.push_back(std::make_shared<Node>(*this));
 	}
 
 ////////////////////////////   sorting criteria for queue   /////////////////////////
@@ -137,7 +144,8 @@ public:
 		int Y_start = (*ptrToStart).Y;
 
 		float current_min_rhs = rhs;
-		std::shared_ptr<Node> current_pred_ptr;
+		//std::shared_ptr<Node> current_pred_ptr;
+		Wptr_toNode current_pred_ptr;
 
 		for (auto A_ptr : AdjacentsList) {   //search among all the adjacent nodes the best one to come from
 			float d = (float)((sqrt(pow((X - (*A_ptr).X), 2.0f) + pow((Y - (*A_ptr).Y), 2.0f))) * 10);
@@ -184,7 +192,7 @@ public:
 
 class dummyNode {
 public:
-	static std::vector<std::shared_ptr<dummyNode>> newMap;	// vector of shared pointers to dummyNodes - def. in ReadMap.h
+	//static std::vector<std::shared_ptr<dummyNode>> newMap;	// vector of shared pointers to dummyNodes - def. in ReadMap.h
 	char Name; //debug
 	int X;
 	int Y;
@@ -201,6 +209,6 @@ public:
 		nodeType = flag;
 		cost = ec;
 
-		newMap.push_back(std::make_shared<dummyNode>(*this));
+		//newMap.push_back(std::make_shared<dummyNode>(*this));
 	}
 };
