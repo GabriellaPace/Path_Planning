@@ -5,6 +5,7 @@
 //#include <memory> //for: shared_from_this()
 #include <queue>
 #include <deque>
+#include <set>	//used instead of queue(?)
 //#include <list>
 #include <vector>
 #include <string> //maybe only for debug ?
@@ -87,5 +88,4 @@ domin_res multi_dom(float c, std::vector<uint8_t> vectC) {	//compare a cost and 
 	else {
 		return nonDomination;
 	}
-}
-// ^ or is it better with counters? 
+}	// ^ or is it better with counters? 

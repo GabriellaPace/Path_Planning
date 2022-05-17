@@ -130,30 +130,28 @@ int main() {
 	for (auto N_ptr : NodesVect) {
 		if ( (*N_ptr).nodeType == goal ) {
 			calculateKey(N_ptr);
-			queue.push(*N_ptr);
+			//queue.push(*N_ptr);
+			queue.insert(*N_ptr);
 		}
 	}
 
-		printAll_g_rhs();   print_queue();  //debug	
-		
-	computeMOPaths();
 		printAll_g_rhs();   print_queue();  //debug
+	computeMOPaths();
+		
 		//std::system("CLS");//debug
 
 	//while (start != goal) {
-		solutionPaths = generateMOPaths();
-		if (solutionPaths.empty()) {
-			std::cout << " => There are no avaliable paths - waiting for any edge cost to change.\n\n";
-		}
-		//sleep(5);
-		updateMap();
+		//solutionPaths = generateMOPaths();
+		//if (solutionPaths.empty()) {
+		//	std::cout << " => There are no avaliable paths - waiting for any edge cost to change.\n\n";
+		//}
+		////sleep(5);
+		//updateMap();
 	//}
 // end of function PLAN()
 
-		printAll_g_rhs();   print_queue();  //debug
+		//printAll_g_rhs();   print_queue();  //debug
 
-
-	// DELETE ALL objects
-		//shared_ptr are automatically deleted when out of scope (??) -> so no need to do it manually 
+	// DELETE ALL objects -> shared_ptr are automatically deleted when out of scope (??) -> so no need to do it manually 
 	std::cin.get();
 }

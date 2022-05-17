@@ -3,27 +3,45 @@
 
 
 using Qe = std::priority_queue<Node, std::vector<Node>, std::greater<Node>>;
+//namespace pmr {
+//	template <class Key, class Compare = std::less<Key>>
+//	using set = std::set<Key, Compare, std::pmr::polymorphic_allocator<Key>>;
+//}
+using set = std::set<Node, std::less<Node>, std::pmr::polymorphic_allocator<Node> >;
+	//std::pmr::polymorphic_allocator = runtime polymorphism, allows objects using polymorphic_allocator to behave as if they used different allocator types at run time despite the identical static allocator type
 using Deq = std::deque<Wptr_toNode>;
 using parents_map = robin_hood::unordered_map < Wptr_toNode, uint8_t >;	//only needed by debug
 
 //std::priority_queue<Node, std::vector<Node>, CompareKey >  queue;
-Qe queue;   // filled with Nodes, NOT ptr_to_Nodes !!
+//Qe queue;		// filled with Nodes, NOT ptr_to_Nodes !!
+set queue;		// filled with Nodes, NOT ptr_to_Nodes !!
 
 ////////////////////////////////////// Debug functions //////////////////////////////////////
-void print_queue() {					// debug
-	Qe q = queue;
+void print_queue() {
 	std::cout << "Queue:" << std::endl;
-	Node tmp;
-	if (q.empty())
+	if (queue.empty())
 		std::cout << " empty!\n";
 	else {
-		while (!q.empty()) {
-			tmp = q.top();
-			tmp.print_NodeKey();
-			q.pop();
+		for (auto N : queue)
+		{
+			N.print_NodeKey();
 		}
 	}
 	std::cout << std::endl;
+
+	//Qe q = queue;
+	//std::cout << "Queue:" << std::endl;
+	//Node tmp;
+	//if (q.empty())
+	//	std::cout << " empty!\n";
+	//else {
+	//	while (!q.empty()) {
+	//		tmp = q.top();
+	//		tmp.print_NodeKey();
+	//		q.pop();
+	//	}
+	//}
+	//std::cout << std::endl;
 }
 
 void printAll_g_rhs() {
@@ -118,7 +136,6 @@ void findAdjacents(Wptr_toNode N) {
 
 
 std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated nodes among successors of the given node
-	//std::vector<Sptr_toNode> nonDomSuccs_tmp;
 	std::vector<Wptr_toNode> nonDomSuccs_tmp;
 	bool nonDom_flag;
 	float cC_out, cC_in;  // still considering single g and rhs -> will become vectors //cC = cumulative cost (outer/inner loop)
@@ -129,8 +146,7 @@ std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated no
 
 		for (auto inN : N->AdjacentsList) {		//paragona con ogni altro elemento di AdjacentsList [anche con se stesso!!] -> problema?	 
 			cC_in = compute_cost(N, inN) + inN->g;
-			//if (!nonDom_b(cC_out, cC_in)) {
-			if (domination(cC_out, cC_in) == snd_dominates) {		//it is dominated by someone-else!
+			if (domination(cC_out, cC_in) == snd_dominates) {		//it is dominated by someone-else!	//if (!nonDom_b(cC_out, cC_in)) {
 				nonDom_flag = false;
 				break;
 			}
@@ -143,10 +159,6 @@ std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated no
 
 	return nonDomSuccs_tmp;
 }
-
-
-
-
 
 
 //void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
@@ -170,8 +182,6 @@ std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated no
 //	N->parents[current_pred_ptr]; // = compute_cost(std::make_shared<Node>(*this), current_pred_ptr);
 //}
 
-
-/*????????????????????????????????????????????????????????????????????????????????????????????????????*/
 void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
 	if (N->nodeType != goal) {
 		//N->rhs = nonDom_succs(N);	//????????????????????
@@ -191,18 +201,21 @@ void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
 		N->rhs = current_min_rhs;
 	}
 
-	// if N is in queue -> remove N from queue (impossible with priority queue!!)
-		/*could use deque, but doesn't automaticcaly sort elements when randomly inserted*/
+	if (queue.find(*N) != queue.end()) {	// if N is in the queue, remove it
+		queue.erase(*N);
+	}
 
 	if (domination(N->g, N->rhs) != areEqual) {
 		calculateKey(N);
-		queue.push(*N);
+
+
+		// FOR [0,1] ENTERS HERE BUT THIS insert  DOESN'T WORK!! [0,1] IS NOT ALREADY IN THE QUEUE
+		queue.insert(*N);
+		//by definition doesn't allow duplicates, if inserted element is equivalent to an element already in the container, the element is not inserted, returning an iterator to this existing element (if the function returns a value)
 	}
+
+	print_queue();  //debug
 }
-/*????????????????????????????????????????????????????????????????????????????????????????????????????*/
-
-
-
 
 
 void updateAdjacents(Wptr_toNode N) {
@@ -219,43 +232,42 @@ void updateAdjacents(Wptr_toNode N) {
 /*--------------------------------------- ROUTINES ----------------------------------------*/
 
 void computeMOPaths() {  //function COMPUTE_MO_PATHS()	
-	//(*(ptrToStart)).calculateKey();
-	calculateKey(ptrToStart);
-	while (!queue.empty() && *ptrToStart > queue.top()) {	// = start.key dominates the top key in the queue
-		Node deqN_wOldKey = queue.top();  //pick top one (deqN = de-queued Node)
-		queue.pop();					  //and then remove it
+	Node deqN_wOldKey;
+	float inf = std::numeric_limits<float>::infinity();	// can't do "using"
 
-		//Sptr_toNode deqN_ptr = findNodeptr(deqN_wOldKey.X, deqN_wOldKey.Y);	 //ptr to de-queued node
+	calculateKey(ptrToStart);
+
+	while (!queue.empty()  &&  ( (*ptrToStart).key.second == inf || *ptrToStart < *(queue.begin()) ) ) {	// = start.key dominates the top key in the queue ( < = ordering rule, based on key)
+		//Node deqN_wOldKey = queue.top();  //pick top one (deqN = de-queued Node)
+		//queue.pop();					  //and then remove it
+		auto queue_top = queue.begin();
+		deqN_wOldKey = *queue_top;  //pick top Node in the queue (deqN = de-queued Node)
+		queue.erase(queue_top);		//equivalent to "queue.pop()" -> remove dequeued node from the queue
+
 		Wptr_toNode deqN_ptr = findNodeptr(deqN_wOldKey.X, deqN_wOldKey.Y);	 //ptr to de-queued node
-		//(*deqN_ptr).calculateKey();
 		calculateKey(deqN_ptr);
 
 		if (deqN_wOldKey < *deqN_ptr) {					 //put it back in queue with new key
-			queue.push(*deqN_ptr);
+			queue.insert(*deqN_ptr);
 		}
 		else if ((*deqN_ptr).rhs < (*deqN_ptr).g) {		 // OVERCONSISTENT
 			(*deqN_ptr).g = (*deqN_ptr).rhs;
-			//(*deqN_ptr).updateAdjacents();
 			updateAdjacents(deqN_ptr);
 		}
 		else if ((*deqN_ptr).rhs > (*deqN_ptr).g) {		 // UNDERCONSISTENT
 			(*deqN_ptr).g = std::numeric_limits<float>::infinity();
-			//(*deqN_ptr).updateAdjacents();
 			updateAdjacents(deqN_ptr);
-			//(*deqN_ptr).update_rhs();
 			update_rhs(deqN_ptr);
 		}
 		else {											 // not dominant and not dominated 
 			(*deqN_ptr).g = nonDom_2((*deqN_ptr).g, (*deqN_ptr).rhs);
-			//(*deqN_ptr).updateAdjacents();
 			updateAdjacents(deqN_ptr);
 		}
 
-		//(*(ptrToStart)).calculateKey(); //for next loop
 		calculateKey(ptrToStart); //for next loop
+		printAll_g_rhs();   //print_queue();  //debug
 	}
 	std::cout << " => Computed MO Paths.\n\n";
-	//return queue;
 }
 
 
