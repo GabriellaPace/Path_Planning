@@ -4,17 +4,14 @@
 
 using Qe = std::priority_queue<Node, std::vector<Node>, std::greater<Node>>;
 using Deq = std::deque<Wptr_toNode>;
+using parents_map = robin_hood::unordered_map < Wptr_toNode, uint8_t >;	//only needed by debug
 
-// definition of Node's static variables
-//float Node::k_m = 0.0f;
-//std::vector<std::shared_ptr<Node>> Node::NodesVect;			//std::vector<std::weak_ptr<Node>> Node::NodesVect;
-//std::vector<std::shared_ptr<dummyNode>> newMap;
-//Sptr_toNode  Node::ptrToStart = nullptr;
-//Sptr_toNode  Node::ptrToGoal = nullptr;
-	//declatation and definition
+//std::priority_queue<Node, std::vector<Node>, CompareKey >  queue;
+Qe queue;   // filled with Nodes, NOT ptr_to_Nodes !!
 
-/*-------------------------------  Debug functions  -------------------------------*/
-void print_queue(Qe q) {					// debug
+////////////////////////////////////// Debug functions //////////////////////////////////////
+void print_queue() {					// debug
+	Qe q = queue;
 	std::cout << "Queue:" << std::endl;
 	Node tmp;
 	if (q.empty())
@@ -44,8 +41,17 @@ void print_intVect(std::vector<uint8_t> vect) {
 	std::cout << std::endl;
 }
 
-/*----------------------------------  Functions  ----------------------------------*/
-//Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
+void print_parents(Wptr_toNode  N) {
+	std::cout << "Parents of node ";	N->print_Coord();		std::cout << " :\n";
+	for (parents_map::iterator it = N->parents.begin(); it != N->parents.end(); ++it) {
+		std::cout << "Key (coord): ";	(it->first)->print_Coord();
+		std::cout << "  -  Value: " << +(it->second) << std::endl;		//+ needed to print unsigned_int8
+	}
+	std::cout << std::endl;
+}
+
+///////////////////////////////////////// Functions /////////////////////////////////////////
+
 Wptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
 	int x = xx;
 	int y = yy;
@@ -63,7 +69,7 @@ Wptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired 
 	}
 }
 
-////////////////////////////////////////// METHODS //////////////////////////////////////////
+/*----------------------------------------------------------------------------------------*/
 
 int heuristic(Wptr_toNode N) {		// shortest aereal path (ignoring the grid)
 	int X_start = (*ptrToStart).X;
@@ -76,13 +82,18 @@ int heuristic(Wptr_toNode N) {		// shortest aereal path (ignoring the grid)
 }
 
 
-
 void calculateKey(Wptr_toNode N) {
 	N->key.second = nonDom_2(N->g, N->rhs);
 	N->key.first = N->key.second + heuristic(N) + k_m;
 }
 
-/*--------------------------------------------------------------------------------*/
+
+uint8_t compute_cost(Wptr_toNode n1, Wptr_toNode n2) {	// edge-cost derived from node-costs
+	return std::max(n1->cost, n2->cost);	//<- as done for Theta* Planner in Nav2
+}
+
+/*------------------------------------- Nodes updates -------------------------------------*/
+
 void addAdj(Wptr_toNode N, int oriz, int vert) {
 	auto it = find_if(NodesVect.begin(), NodesVect.end(), [&oriz, &vert](const Wptr_toNode& obj) {return ((*obj).X == oriz && (*obj).Y == vert); });
 	if (it != NodesVect.end()) {
@@ -106,56 +117,17 @@ void findAdjacents(Wptr_toNode N) {
 }
 
 
-void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
-	int X_start = (*ptrToStart).X;
-	int Y_start = (*ptrToStart).Y;
-
-	float current_min_rhs = N->rhs;
-	//std::shared_ptr<Node> current_pred_ptr;
-	Wptr_toNode current_pred_ptr;
-
-	for (auto A_ptr : N->AdjacentsList) {   //search among all the adjacent nodes the best one to come from
-		float d = (float)((sqrt(pow((N->X - (*A_ptr).X), 2.0f) + pow((N->Y - (*A_ptr).Y), 2.0f))) * 10);
-		//^ distance btw current node and selected adjacent one
-		float tmp_rhs = (*A_ptr).g + d;    //the rhs that this node would have if updated
-		if (tmp_rhs < current_min_rhs) {   //actually update it only if better than old one
-			current_min_rhs = tmp_rhs;
-			current_pred_ptr = A_ptr;
-		}
-	}
-	N->rhs = current_min_rhs;
-	N->predecessor = current_pred_ptr; //to remove
-	N->parents[current_pred_ptr];// = compute_cost(std::make_shared<Node>(*this), current_pred_ptr);
-}
-
-
-void updateAdjacents(Wptr_toNode N) {
-	for (auto A_ptr : N->AdjacentsList) {   //update each node adjacent to the modified one
-		//(*A_ptr).update_rhs();
-		update_rhs(A_ptr);
-	}
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-//uint8_t compute_cost(Sptr_toNode n1, Sptr_toNode n2) {	// edge-cost derived from node-costs
-uint8_t compute_cost(Wptr_toNode n1, Wptr_toNode n2) {	// edge-cost derived from node-costs
-	return std::max(n1->cost, n2->cost);	//<- as done for Theta* Planner in Nav2
-}
-
-
-
 std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated nodes among successors of the given node
 	//std::vector<Sptr_toNode> nonDomSuccs_tmp;
 	std::vector<Wptr_toNode> nonDomSuccs_tmp;
 	bool nonDom_flag;
 	float cC_out, cC_in;  // still considering single g and rhs -> will become vectors //cC = cumulative cost (outer/inner loop)
 
-	for(auto adN : N->AdjacentsList) {		//per ogni elemento di AdjacentsList
+	for (auto adN : N->AdjacentsList) {		//for each element of AdjacentsList, we'll check if it dominated every other element in the same List
 		nonDom_flag = true;
 		cC_out = compute_cost(N, adN) + adN->g;
-		
-		for (auto inN : N->AdjacentsList) {		//paragona con ogni altro elemento di AdjacentsList [anche con se stesso!! -> problema?	 
+
+		for (auto inN : N->AdjacentsList) {		//paragona con ogni altro elemento di AdjacentsList [anche con se stesso!!] -> problema?	 
 			cC_in = compute_cost(N, inN) + inN->g;
 			//if (!nonDom_b(cC_out, cC_in)) {
 			if (domination(cC_out, cC_in) == snd_dominates) {		//it is dominated by someone-else!
@@ -173,10 +145,80 @@ std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated no
 }
 
 
-///////////////////////////////////////// ROUTINES //////////////////////////////////////////
 
 
-Qe computeMOPaths(Qe queue) {  //function COMPUTE_MO_PATHS()	
+
+
+//void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
+//	int X_start = (*ptrToStart).X;
+//	int Y_start = (*ptrToStart).Y;
+//
+//	float current_min_rhs = N->rhs;
+//	//std::shared_ptr<Node> current_pred_ptr;
+//	Wptr_toNode current_pred_ptr;
+//
+//	for (auto A_ptr : N->AdjacentsList) {   //search among all the adjacent nodes the best one to come from
+//		float d = (float)((sqrt(pow((N->X - (*A_ptr).X), 2.0f) + pow((N->Y - (*A_ptr).Y), 2.0f))) * 10);
+//		//^ distance btw current node and selected adjacent one
+//		float tmp_rhs = (*A_ptr).g + d;    //the rhs that this node would have if updated
+//		if (tmp_rhs < current_min_rhs) {   //actually update it only if better than old one
+//			current_min_rhs = tmp_rhs;
+//			current_pred_ptr = A_ptr;
+//		}
+//	}
+//	N->rhs = current_min_rhs;
+//	N->parents[current_pred_ptr]; // = compute_cost(std::make_shared<Node>(*this), current_pred_ptr);
+//}
+
+
+/*????????????????????????????????????????????????????????????????????????????????????????????????????*/
+void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
+	if (N->nodeType != goal) {
+		//N->rhs = nonDom_succs(N);	//????????????????????
+
+		// ^ means this (??) :
+
+		float tmp_rhs;
+		float current_min_rhs = N->rhs;
+		for (auto s1 : N->AdjacentsList) {   //search among all the adjacent nodes the best one to come from
+			//c = compute_cost(N, A_ptr);	//distance btw current node and selected adjacent one
+
+			tmp_rhs = compute_cost(N, s1) + s1->g;    //the rhs that this node would have if updated
+			if (domination(tmp_rhs, current_min_rhs) == fst_dominates) {   //actually update it only if better than old one
+				current_min_rhs = tmp_rhs;
+			}
+		}
+		N->rhs = current_min_rhs;
+	}
+
+	// if N is in queue -> remove N from queue (impossible with priority queue!!)
+		/*could use deque, but doesn't automaticcaly sort elements when randomly inserted*/
+
+	if (domination(N->g, N->rhs) != areEqual) {
+		calculateKey(N);
+		queue.push(*N);
+	}
+}
+/*????????????????????????????????????????????????????????????????????????????????????????????????????*/
+
+
+
+
+
+void updateAdjacents(Wptr_toNode N) {
+	for (auto A_ptr : N->AdjacentsList) {   //update each node adjacent to the modified one
+		//(*A_ptr).update_rhs();
+		update_rhs(A_ptr);
+	}
+}
+
+/*-----------------------------------------------------------------------------------------*/
+
+
+
+/*--------------------------------------- ROUTINES ----------------------------------------*/
+
+void computeMOPaths() {  //function COMPUTE_MO_PATHS()	
 	//(*(ptrToStart)).calculateKey();
 	calculateKey(ptrToStart);
 	while (!queue.empty() && *ptrToStart > queue.top()) {	// = start.key dominates the top key in the queue
@@ -213,5 +255,60 @@ Qe computeMOPaths(Qe queue) {  //function COMPUTE_MO_PATHS()
 		calculateKey(ptrToStart); //for next loop
 	}
 	std::cout << " => Computed MO Paths.\n\n";
-	return queue;
+	//return queue;
+}
+
+
+void updateMap() {
+	// initializations (and re-initializations)
+	bool nodes_changes = false;
+	bool vehicle_moved = false;
+	Wptr_toNode N_inOld = nullptr;
+	std::vector<Wptr_toNode> ChangedNodes;
+	ChangedNodes.clear();
+
+
+	ReadMap();	//second map  (//wait for any weight cost to change)
+
+	for (auto d_ptr : newMap) {
+		N_inOld = findNodeptr((*d_ptr).X, (*d_ptr).Y);
+		if (N_inOld == nullptr) {	//Node not found
+			std::cout << " => coordinates [" << d_ptr->X << "," << d_ptr->Y << "] were not in the old map, so a new node will be created.\n\n"; //debug		
+			NodesVect.push_back(std::make_shared<Node>(d_ptr->Name, d_ptr->X, d_ptr->Y, d_ptr->cost, d_ptr->nodeType));	//define new Node
+			nodes_changes = true;
+		}
+		else {						//Node found
+			//the node changed its cost or type (start/goal/any):
+			if (d_ptr->cost != N_inOld->cost || d_ptr->nodeType != N_inOld->nodeType) {
+				nodes_changes = true;
+				//ChangedNodes.push_back(N_inOld);	//save pointers of changed ones
+
+				//N_inOld = findNodeptr(d_ptr->X, d_ptr->Y);
+				N_inOld->cost = d_ptr->cost;	// = "Update cost" /*11*/
+				N_inOld->nodeType = d_ptr->nodeType;
+				update_rhs(N_inOld);			// = "Update Vertex" /*12*/
+				updateAdjacents(N_inOld);		//should I update all the adjacent nodes' rhs??  <======================================================
+
+			}
+			//else: Node found but there were no modifications to it
+		}
+
+		if (nodes_changes) {
+			if (d_ptr->nodeType == start) {
+				ptrToStart = findNodeptr(d_ptr->X, d_ptr->Y);
+				vehicle_moved = true;
+			}
+			if (d_ptr->nodeType == goal) {
+				ptrToGoal = findNodeptr(d_ptr->X, d_ptr->Y);
+			}
+		}
+	}
+
+	// once we finished updating the map:
+	if (nodes_changes) {
+		if (vehicle_moved) {	//start node has changed	
+			k_m = k_m + heuristic(ptrToGoal);
+		}
+		computeMOPaths();	/*13*/
+	}
 }

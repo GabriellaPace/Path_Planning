@@ -1,21 +1,21 @@
 #pragma once
 #include <iostream>
 #include <cmath>
-#include <limits> // for min/max
+#include <limits> //for min/max
 //#include <memory> //for: shared_from_this()
 #include <queue>
 #include <deque>
 //#include <list>
 #include <vector>
-#include <string> // maybe only for debug ?
-//#include <valarray> //for: parents.values().sum()
+#include <string> //maybe only for debug ?
 #include "robin_hood.h" //faster than <unordered_map>
 
+
 //#define DEBUG  //#ifdef DEBUG   #endif
-//all_of  -  none_of  -  any_of  -  find_if
+/* all_of  -  none_of  -  any_of  -  find_if */
 
 
-float nonDom_2(float g, float rhs) {		// nonDom = min			
+float nonDom_2(float g, float rhs) {		// nonDominated (=dominant) = min			
 	return std::min(g, rhs);		// still considering single g and rhs	
 }
 
@@ -25,13 +25,13 @@ enum domin_res {
 };
 
 domin_res domination(float fst, float snd) {		//vectDomination()
-	if (fst > snd) {
+	if (fst < snd) {						//domination = smaller one
 		return fst_dominates;
 	}
 	else if (fst == snd) {
 		return areEqual;
 	}
-	else if (fst < snd){
+	else if (fst > snd){
 		return snd_dominates;
 	}
 	else {	//useless until fst and snd are float
@@ -40,30 +40,32 @@ domin_res domination(float fst, float snd) {		//vectDomination()
 }
 
 /*
-domin_res vectDomination(std::vector<float> g, std::vector<float> rhs) {		// vectorial g and rhs [scalabile!]
-	int countG = 0;
-	int countL = 0;
-	int countE = 0;
+domin_res vectDomination(std::vector<float> fst, std::vector<float> snd) {		// vectorial g and rhs [scalabile!]
+	//fst and snd should have same size by definition (usually fst=g, snd=rhs)
+	int count_fst = 0;	//dominations of First parameter
+	int count_snd = 0;	//dominations of Second parameter
+	int count_eq = 0;	//equalities
 
-	for (int i = 0; i < g.size(); ++i) {
-		if (g[i] > rhs[i]) {
-			++countG;
+	// domination = is min
+	for (int i = 0; i < fst.size(); ++i) {
+		if (fst[i] < snd[i]) {
+			++count_fst;
 		}
-		else if (g[i] < rhs[i]) {
-			++countL;
+		else if (fst[i] > snd[i]) {
+			++count_snd;
 		}
-		else {
-			++countE;
+		else {	//fst[i] == snd[i]
+			++count_eq;
 		}
 	}
 
-	if ( (countG + countE) == g.size()) {		// >=
+	if ( (count_fst + count_eq) == fst.size()) {		// <=
 		return fst_dominates;
 	}
-	else if ((countL + countE) == g.size()) {	// <=
+	else if ((count_snd + count_eq) == fst.size()) {	// >=
 		return snd_dominates;
 	}
-	else if (countE == g.size()) {
+	else if (count_eq == fst.size()) {					// ==
 		return areEqual;
 	}
 	else {
@@ -73,14 +75,14 @@ domin_res vectDomination(std::vector<float> g, std::vector<float> rhs) {		// vec
 */
 
 domin_res multi_dom(float c, std::vector<uint8_t> vectC) {	//compare a cost and a vector of costs
-	if (std::all_of(vectC.begin(), vectC.end(), [&c](const uint8_t& v) {return (domination(c, v) == fst_dominates); } )) {
-		return fst_dominates;
+	if (std::all_of(vectC.begin(), vectC.end(), [&c](const uint8_t& v) {return (domination(c, v) == fst_dominates); } )) {		// < (not <=)  -> ok?
+		return fst_dominates;	//fst_completely_cominates
 	}
-	else if (std::all_of(vectC.begin(), vectC.end(), [&c](const uint8_t& v) {return (domination(c, v) == areEqual); })) {
+	else if (std::all_of(vectC.begin(), vectC.end(), [&c](const uint8_t& v) {return (domination(c, v) == areEqual); })) {		// ==
 		return areEqual;
 	}
-	else if (std::all_of(vectC.begin(), vectC.end(), [&c](const uint8_t& v) {return (domination(c, v) == snd_dominates); })) {
-		return snd_dominates;
+	else if (std::all_of(vectC.begin(), vectC.end(), [&c](const uint8_t& v) {return (domination(c, v) == snd_dominates); })) {	// > (not >=)  -> ok?
+		return snd_dominates;	//snd_completely_cominates
 	}
 	else {
 		return nonDomination;
