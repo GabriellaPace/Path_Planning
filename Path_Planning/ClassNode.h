@@ -46,18 +46,18 @@ public:
 	}
 
 ////////////////////////////   sorting criteria for queue   /////////////////////////
-	bool operator > (const Node &N2) const {
-		if (key.first > N2.key.first)
-			return true;
-		else if (key.first < N2.key.first)
-			return false;
-		else { // key.first == N2.key.first
-			if (key.second > N2.key.second)
-				return true;
-			else // (key.second <= N2.key.second)
-				return false;
-		}
-	}
+	//bool operator > (const Node &N2) const {		//greater
+	//	if (key.first > N2.key.first)
+	//		return true;
+	//	else if (key.first < N2.key.first)
+	//		return false;
+	//	else { // key.first == N2.key.first
+	//		if (key.second > N2.key.second)
+	//			return true;
+	//		else // (key.second <= N2.key.second)
+	//			return false;
+	//	}
+	//}
 
 	bool operator < (const Node &N2) const {
 		if (key.first < N2.key.first)
@@ -67,10 +67,21 @@ public:
 		else { // key.first == N2.key.first
 			if (key.second < N2.key.second)
 				return true;
-			else // (key.second >= N2.key.second)
+			else if (key.second > N2.key.second)
 				return false;
+			else { // k1==k1 & k2==k2	->	to allow different nodes with the same key to be both in the queue
+				//if (X != N2.X || Y != N2.Y)  -> CRASH -> comparator has to be strict
+				if (X != N2.X)			
+					return (X < N2.X);	//arbitrary order (not important)
+				else if (Y != N2.Y)
+					return (Y < N2.Y);
+				else
+					return false;
+			}
 		}
 	}
+
+
 
 //////////////////////////////////   debug Methods   ////////////////////////////////
 	void print_Coord() {
