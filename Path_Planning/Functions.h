@@ -2,19 +2,12 @@
 #include "ReadMap.h"
 
 
-using Qe = std::priority_queue<Node, std::vector<Node>, std::greater<Node>>;
-//namespace pmr {
-//	template <class Key, class Compare = std::less<Key>>
-//	using set = std::set<Key, Compare, std::pmr::polymorphic_allocator<Key>>;
-//}
-using set = std::set<Node, std::less<Node>, std::pmr::polymorphic_allocator<Node> >;
+using set = std::set<Node, std::less<Node>, std::pmr::polymorphic_allocator<Node> >;	//by definition doesn't allow duplicates
 	//std::pmr::polymorphic_allocator = runtime polymorphism, allows objects using polymorphic_allocator to behave as if they used different allocator types at run time despite the identical static allocator type
-using Deq = std::deque<Wptr_toNode>;
-using parents_map = robin_hood::unordered_map < Wptr_toNode, uint8_t >;	//only needed by debug
+using Deq = std::deque<Wptr_toNode>;	//for expanding_states (unordered queue)
+using parents_map = robin_hood::unordered_map < Wptr_toNode, uint8_t >;
 
-//std::priority_queue<Node, std::vector<Node>, CompareKey >  queue;
-//Qe queue;		// filled with Nodes, NOT ptr_to_Nodes !!
-set queue;		// filled with Nodes, NOT ptr_to_Nodes !!
+set queue;	//filled with Nodes, NOT ptr_to_Nodes !!
 
 ////////////////////////////////////// Debug functions //////////////////////////////////////
 void print_queue() {
@@ -28,20 +21,6 @@ void print_queue() {
 		}
 	}
 	std::cout << std::endl;
-
-	//Qe q = queue;
-	//std::cout << "Queue:" << std::endl;
-	//Node tmp;
-	//if (q.empty())
-	//	std::cout << " empty!\n";
-	//else {
-	//	while (!q.empty()) {
-	//		tmp = q.top();
-	//		tmp.print_NodeKey();
-	//		q.pop();
-	//	}
-	//}
-	//std::cout << std::endl;
 }
 
 void printAll_g_rhs() {
@@ -73,11 +52,9 @@ void print_parents(Wptr_toNode  N) {
 Wptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
 	int x = xx;
 	int y = yy;
-	int idx; // = -1;   //<- this should raise an error if used in a vector
-	//auto it = find_if(NodesVect.begin(), NodesVect.end(),
-		//[&x, &y](const std::shared_ptr<Node>& obj) {return ((*obj).X == x && (*obj).Y == y); });
+	int idx;
 	auto it = find_if(NodesVect.begin(), NodesVect.end(),
-		[&x, &y](const Wptr_toNode& obj) {return ((*obj).X == x && (*obj).Y == y); });
+			  [&x, &y](const Wptr_toNode& obj) {return ((*obj).X == x && (*obj).Y == y); });
 	if (it != NodesVect.end()) {
 		idx = (int)std::distance(NodesVect.begin(), it);
 		return NodesVect[idx];
@@ -135,7 +112,8 @@ void findAdjacents(Wptr_toNode N) {
 }
 
 
-std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated nodes among successors of the given node
+std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated successors, wrt multiobjective c+g
+//nonDomSuccs = nonDom_[s' in succ(Ns)](sum(c(Ns, s’), g(s’)) 
 	std::vector<Wptr_toNode> nonDomSuccs_tmp;
 	bool nonDom_flag;
 	float cC_out, cC_in;  // still considering single g and rhs -> will become vectors //cC = cumulative cost (outer/inner loop)
@@ -146,7 +124,7 @@ std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated no
 
 		for (auto inN : N->AdjacentsList) {		//paragona con ogni altro elemento di AdjacentsList [anche con se stesso!!] -> problema?	 
 			cC_in = compute_cost(N, inN) + inN->g;
-			if (domination(cC_out, cC_in) == snd_dominates) {		//it is dominated by someone-else!	//if (!nonDom_b(cC_out, cC_in)) {
+			if (domination(cC_out, cC_in) == snd_dominates) {		//it is dominated by someone-else!	//if (!nonDom_b(cC_out, cC_in))
 				nonDom_flag = false;
 				break;
 			}
@@ -161,27 +139,6 @@ std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated no
 }
 
 
-//void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
-//	int X_start = (*ptrToStart).X;
-//	int Y_start = (*ptrToStart).Y;
-//
-//	float current_min_rhs = N->rhs;
-//	//std::shared_ptr<Node> current_pred_ptr;
-//	Wptr_toNode current_pred_ptr;
-//
-//	for (auto A_ptr : N->AdjacentsList) {   //search among all the adjacent nodes the best one to come from
-//		float d = (float)((sqrt(pow((N->X - (*A_ptr).X), 2.0f) + pow((N->Y - (*A_ptr).Y), 2.0f))) * 10);
-//		//^ distance btw current node and selected adjacent one
-//		float tmp_rhs = (*A_ptr).g + d;    //the rhs that this node would have if updated
-//		if (tmp_rhs < current_min_rhs) {   //actually update it only if better than old one
-//			current_min_rhs = tmp_rhs;
-//			current_pred_ptr = A_ptr;
-//		}
-//	}
-//	N->rhs = current_min_rhs;
-//	N->parents[current_pred_ptr]; // = compute_cost(std::make_shared<Node>(*this), current_pred_ptr);
-//}
-
 void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
 	if (N->nodeType != goal) {
 		//N->rhs = nonDom_succs(N);	//????????????????????
@@ -191,8 +148,6 @@ void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
 		float tmp_rhs;
 		float current_min_rhs = N->rhs;
 		for (auto s1 : N->AdjacentsList) {   //search among all the adjacent nodes the best one to come from
-			//c = compute_cost(N, A_ptr);	//distance btw current node and selected adjacent one
-
 			tmp_rhs = compute_cost(N, s1) + s1->g;    //the rhs that this node would have if updated
 			if (domination(tmp_rhs, current_min_rhs) == fst_dominates) {   //actually update it only if better than old one
 				current_min_rhs = tmp_rhs;
@@ -207,11 +162,7 @@ void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
 
 	if (domination(N->g, N->rhs) != areEqual) {
 		calculateKey(N);
-
-
-		// FOR [0,1] ENTERS HERE BUT THIS insert  DOESN'T WORK!! [0,1] IS NOT ALREADY IN THE QUEUE
 		queue.insert(*N);
-		//by definition doesn't allow duplicates, if inserted element is equivalent to an element already in the container, the element is not inserted, returning an iterator to this existing element (if the function returns a value)
 	}
 
 	print_queue();  //debug
@@ -224,9 +175,6 @@ void updateAdjacents(Wptr_toNode N) {
 		update_rhs(A_ptr);
 	}
 }
-
-/*-----------------------------------------------------------------------------------------*/
-
 
 
 /*--------------------------------------- ROUTINES ----------------------------------------*/

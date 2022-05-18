@@ -34,7 +34,6 @@ public:
 		g = std::numeric_limits<float>::infinity();
 
 		if (nodeType == goal) {
-			//ptrToGoal = this;
 			rhs = 0.0f;
 		}
 		else {
@@ -46,18 +45,18 @@ public:
 	}
 
 ////////////////////////////   sorting criteria for queue   /////////////////////////
-	//bool operator > (const Node &N2) const {		//greater
-	//	if (key.first > N2.key.first)
-	//		return true;
-	//	else if (key.first < N2.key.first)
-	//		return false;
-	//	else { // key.first == N2.key.first
-	//		if (key.second > N2.key.second)
-	//			return true;
-	//		else // (key.second <= N2.key.second)
-	//			return false;
-	//	}
-	//}
+	/*bool operator > (const Node &N2) const {		//greater
+		if (key.first > N2.key.first)
+			return true;
+		else if (key.first < N2.key.first)
+			return false;
+		else { // key.first == N2.key.first
+			if (key.second > N2.key.second)
+				return true;
+			else // (key.second <= N2.key.second)
+				return false;
+		}
+	}*/
 
 	bool operator < (const Node &N2) const {
 		if (key.first < N2.key.first)
@@ -114,7 +113,6 @@ public:
 
 class dummyNode {
 public:
-	//static std::vector<std::shared_ptr<dummyNode>> newMap;	// vector of shared pointers to dummyNodes - def. in ReadMap.h
 	char Name; //debug
 	int X;
 	int Y;
