@@ -2,7 +2,6 @@
 #include <iostream>
 #include <cmath>
 #include <limits> //for min/max
-//#include <memory> //for: shared_from_this()
 #include <queue>
 #include <deque>
 #include <set>	//used instead of queue(?)
