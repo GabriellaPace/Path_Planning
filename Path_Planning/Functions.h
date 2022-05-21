@@ -3,7 +3,7 @@
 
 
 using set = std::set<Node, std::less<Node>, std::pmr::polymorphic_allocator<Node> >;	//by definition doesn't allow duplicates
-	//std::pmr::polymorphic_allocator = runtime polymorphism, allows objects using polymorphic_allocator to behave as if they used different allocator types at run time despite the identical static allocator type
+	//std::pmr::polymorphic_allocator = allows objects to behave as if they used different allocator types despite the identical static allocator type
 using Deq = std::deque<Wptr_toNode>;	//for expanding_states (unordered queue)
 using parents_map = robin_hood::unordered_map < Wptr_toNode, uint8_t >;
 
@@ -108,20 +108,19 @@ void addAdj(Wptr_toNode N, int oriz, int vert) {
 
 void findAdjacents(Wptr_toNode N) {
 	int oriz, vert;
-	oriz = N->X + 0;  vert = N->Y + 1;   addAdj(N, oriz, vert);
-	oriz = N->X + 0;  vert = N->Y - 1;   addAdj(N, oriz, vert);
-	oriz = N->X + 1;  vert = N->Y + 0;   addAdj(N, oriz, vert);
-	oriz = N->X - 1;  vert = N->Y + 0;   addAdj(N, oriz, vert);
-	oriz = N->X + 1;  vert = N->Y + 1;   addAdj(N, oriz, vert);
-	oriz = N->X - 1;  vert = N->Y + 1;   addAdj(N, oriz, vert);
-	oriz = N->X + 1;  vert = N->Y - 1;   addAdj(N, oriz, vert);
-	oriz = N->X - 1;  vert = N->Y - 1;   addAdj(N, oriz, vert);
-	//^ remove redundant definitions
+	oriz = N->X + 0;	vert = N->Y + 1;	addAdj(N, oriz, vert);
+						vert = N->Y - 1;	addAdj(N, oriz, vert);
+	oriz = N->X + 1;	vert = N->Y + 0;	addAdj(N, oriz, vert);
+	oriz = N->X - 1;						addAdj(N, oriz, vert);
+	oriz = N->X + 1;	vert = N->Y + 1;	addAdj(N, oriz, vert);
+	oriz = N->X - 1;						addAdj(N, oriz, vert);
+	oriz = N->X + 1;	vert = N->Y - 1;	addAdj(N, oriz, vert);
+	oriz = N->X - 1;						addAdj(N, oriz, vert);
 }
 
 
 std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated successors, wrt multiobjective c+g
-//nonDomSuccs = nonDom_[s' in succ(Ns)](sum(c(Ns, s’), g(s’)) 
+															//nonDomSuccs = nonDom_[s' in succ(Ns)](sum(c(Ns, s’), g(s’)) 
 	std::vector<Wptr_toNode> nonDomSuccs_tmp;
 	bool nonDom_flag;
 	float cC_out, cC_in;  // still considering single g and rhs -> will become vectors //cC = cumulative cost (outer/inner loop)
@@ -130,7 +129,7 @@ std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated su
 		nonDom_flag = true;
 		cC_out = compute_cost(N, adN) + adN->g;
 
-		for (auto inN : N->AdjacentsList) {		//paragona con ogni altro elemento di AdjacentsList [anche con se stesso!!] -> problema?	 
+		for (auto inN : N->AdjacentsList) {		//paragona con ogni altro elemento di AdjacentsList [anche con se stesso!!] -> problema? <============	 
 			cC_in = compute_cost(N, inN) + inN->g;
 			if (domination(cC_out, cC_in) == snd_dominates) {		//it is dominated by someone-else!	//if (!nonDom_b(cC_out, cC_in))
 				nonDom_flag = false;
@@ -172,14 +171,11 @@ void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
 		calculateKey(N);
 		queue.insert(*N);
 	}
-
-	//print_queue();  //debug
 }
 
 
 void updateAdjacents(Wptr_toNode N) {
 	for (auto A_ptr : N->AdjacentsList) {   //update each node adjacent to the modified one
-		//(*A_ptr).update_rhs();
 		update_rhs(A_ptr);
 	}
 }
@@ -194,8 +190,6 @@ void computeMOPaths() {  //function COMPUTE_MO_PATHS()
 	calculateKey(ptrToStart);
 
 	while (!queue.empty()  &&  ( (*ptrToStart).key.second == inf || *ptrToStart < *(queue.begin()) ) ) {	// = start.key dominates the top key in the queue ( < = ordering rule, based on key)
-		//Node deqN_wOldKey = queue.top();  //pick top one (deqN = de-queued Node)
-		//queue.pop();					  //and then remove it
 		auto queue_top = queue.begin();
 		deqN_wOldKey = *queue_top;  //pick top Node in the queue (deqN = de-queued Node)
 		queue.erase(queue_top);		//equivalent to "queue.pop()" -> remove dequeued node from the queue
@@ -343,15 +337,11 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 
 
 void updateMap() {
-	// initializations (and re-initializations)
-	bool nodes_changes = false;
-	bool vehicle_moved = false;
+	// initializations
+	bool nodes_changes = false, vehicle_moved = false;
 	Wptr_toNode N_inOld = nullptr;
-	std::vector<Wptr_toNode> ChangedNodes;
-	ChangedNodes.clear();
 
-
-	ReadMap();	//second map  (//wait for any weight cost to change)
+	ReadMap();	// to add -> wait for any weight cost to change
 
 	for (auto d_ptr : newMap) {
 		N_inOld = findNodeptr((*d_ptr).X, (*d_ptr).Y);
@@ -361,12 +351,8 @@ void updateMap() {
 			nodes_changes = true;
 		}
 		else {						//Node found
-			//the node changed its cost or type (start/goal/any):
-			if (d_ptr->cost != N_inOld->cost || d_ptr->nodeType != N_inOld->nodeType) {
+			if (d_ptr->cost != N_inOld->cost || d_ptr->nodeType != N_inOld->nodeType) {  //the node changed its cost or type (start/goal/any):
 				nodes_changes = true;
-				//ChangedNodes.push_back(N_inOld);	//save pointers of changed ones
-
-				//N_inOld = findNodeptr(d_ptr->X, d_ptr->Y);
 				N_inOld->cost = d_ptr->cost;	// = "Update cost" /*11*/
 				N_inOld->nodeType = d_ptr->nodeType;
 				update_rhs(N_inOld);			// = "Update Vertex" /*12*/
@@ -388,12 +374,17 @@ void updateMap() {
 	}
 
 	// once we finished updating the map:
-	if (nodes_changes) {
+	if (nodes_changes && count!=0) {	//count=0 is the first reading
 		if (vehicle_moved) {	//start node has changed	
 			k_m = k_m + heuristic(ptrToGoal);
+			std::cout << " => Vehicle moved (changed start node).\n\n";
 		}
 		computeMOPaths();	/*13*/
 	}
 
-	std::cout << " => Map updated.\n\n";
+
+	for (auto N_ptr : NodesVect) { // fill adjacents to each node -> for sure not optimized!!!!!
+		findAdjacents(N_ptr);
+		N_ptr->print_Adjacents();
+	} //(can't be done in constructor because not all nodes have been registered yet)
 }

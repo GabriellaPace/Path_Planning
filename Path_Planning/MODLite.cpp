@@ -3,25 +3,15 @@
 std::vector<Wptr_toNode> solutionPaths;
 
 int main() {
-	ReadMap_firstTime();
-	for (auto N_ptr : NodesVect) {    // fill (and print) adjacents to each node 
-		findAdjacents(N_ptr);
-		(*N_ptr).print_Adjacents(); //debug
-	} //(can't be done in constructor because not all nodes have been registered yet)
+	updateMap();
 
-// function PLAN()
-	// function Initialize()
-	for (auto N_ptr : NodesVect) {
-		if ( (*N_ptr).nodeType == goal ) {
-			calculateKey(N_ptr);
-			//queue.push(*N_ptr);
-			queue.insert(*N_ptr);
-		}
-	}
+// function PLAN():
+	// function Initialize():
+	calculateKey(ptrToGoal);
+	queue.insert(*ptrToGoal);
 
-		//printAll_g_rhs();   print_queue();  //debug
+	//printAll_g_rhs();   print_queue();  //debug
 	computeMOPaths();
-
 
 	//while (start != goal) {
 		solutionPaths = generateMOPaths();
@@ -34,17 +24,6 @@ int main() {
 
 		//sleep(5);
 		updateMap();
-
-		/*remove*/
-		solutionPaths = generateMOPaths();
-		if (solutionPaths.empty()) {
-			std::cout << " => There are no avaliable paths - waiting for any edge cost to change.\n\n";
-		}
-		else {
-			print_solution(solutionPaths);
-		}
-		/*remove*/
-
 	//}
 // end of function PLAN()
 

@@ -5,11 +5,9 @@
 #include <queue>
 #include <deque>
 #include <set>	//used instead of queue(?)
-//#include <list>
 #include <vector>
 #include <string> //maybe only for debug ?
 #include "robin_hood.h" //faster than <unordered_map>
-
 
 //#define DEBUG  //#ifdef DEBUG   #endif
 /* all_of  -  none_of  -  any_of  -  find_if */
