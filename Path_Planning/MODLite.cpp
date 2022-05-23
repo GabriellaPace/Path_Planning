@@ -10,24 +10,37 @@ int main() {
 	calculateKey(ptrToGoal);
 	queue.insert(*ptrToGoal);
 
-	//printAll_g_rhs();   print_queue();  //debug
 	computeMOPaths();
 
-	//while (start != goal) {
+
+	while (ptrToStart != ptrToGoal) {
 		solutionPaths = generateMOPaths();
 		if (solutionPaths.empty()) {
 			std::cout << " => There are no avaliable paths - waiting for any edge cost to change.\n\n";
 		}
 		else {
+			/*REMOVE*/
+			if (count == 2) {
+				for (int i = 0; i < 3; ++i) {
+					NodesVect[i]->print_g_rhs();
+				}
+				std::cout << std::endl;
+				for (int i = 3; i < 6; ++i) {
+					NodesVect[i]->print_g_rhs();
+				}
+			}
+			/*REMOVE*/
 			print_solution(solutionPaths);
 		}
 
 		//sleep(5);
+		queue.clear();	//added by me -> right????????????????????
 		updateMap();
-	//}
+	}
+	std::cout << " => GOAL REACHED. Exiting.\n\n";
 // end of function PLAN()
 
 	// DELETE ALL objects -> shared_ptr are automatically deleted when out of scope (??) -> so no need to do it manually 
 	std::cout << " => END.\n\n";
-	std::cin.get();
+	//std::cin.get();
 }

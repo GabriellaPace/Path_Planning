@@ -7,7 +7,9 @@ using set = std::set<Node, std::less<Node>, std::pmr::polymorphic_allocator<Node
 using Deq = std::deque<Wptr_toNode>;	//for expanding_states (unordered queue)
 using parents_map = robin_hood::unordered_map < Wptr_toNode, uint8_t >;
 
+
 set queue;	//filled with Nodes, NOT ptr_to_Nodes !!
+
 
 ////////////////////////////////////// Debug functions //////////////////////////////////////
 void print_queue() {
@@ -48,7 +50,7 @@ void print_parents(Wptr_toNode  N) {
 }
 
 void print_solution(std::vector<Wptr_toNode> solution_vect) {
-	std::cout << "SOLUTION PATH optimized for g[1]:\n";
+	std::cout << "SOLUTION PATH for map (" << count-1 << ") optimized for g[1]:\n";
 	for (auto ptr : solution_vect){
 		ptr->print_Coord();
 		std::cout << std::endl;
@@ -119,9 +121,14 @@ void findAdjacents(Wptr_toNode N) {
 }
 
 
-std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated successors, wrt multiobjective c+g
+struct NDS_struct {
+	std::vector<Wptr_toNode> NDS_succs;
+	float NDS_rhs;
+};
+
+struct NDS_struct nonDom_succs(Wptr_toNode N) {				// find non-dominated successors, wrt multiobjective c+g
 															//nonDomSuccs = nonDom_[s' in succ(Ns)](sum(c(Ns, s’), g(s’)) 
-	std::vector<Wptr_toNode> nonDomSuccs_tmp;
+	NDS_struct NDS_sol;
 	bool nonDom_flag;
 	float cC_out, cC_in;  // still considering single g and rhs -> will become vectors //cC = cumulative cost (outer/inner loop)
 
@@ -138,29 +145,30 @@ std::vector<Wptr_toNode> nonDom_succs(Wptr_toNode N) {		// find non-dominated su
 		}
 
 		if (nonDom_flag) {
-			nonDomSuccs_tmp.push_back(adN);
+			NDS_sol.NDS_succs.push_back(adN);
+			NDS_sol.NDS_rhs = cC_out;
 		}
 	}
 
-	return nonDomSuccs_tmp;
+	return NDS_sol;
 }
 
 
 void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
 	if (N->nodeType != goal) {
-		//N->rhs = nonDom_succs(N);	//????????????????????
+		N->rhs = nonDom_succs(N).NDS_rhs;
 
 		// ^ means this (??) :
 
-		float tmp_rhs;
-		float current_min_rhs = N->rhs;
-		for (auto s1 : N->AdjacentsList) {   //search among all the adjacent nodes the best one to come from
-			tmp_rhs = compute_cost(N, s1) + s1->g;    //the rhs that this node would have if updated
-			if (domination(tmp_rhs, current_min_rhs) == fst_dominates) {   //actually update it only if better than old one
-				current_min_rhs = tmp_rhs;
-			}
-		}
-		N->rhs = current_min_rhs;
+		//float tmp_rhs;
+		//float current_min_rhs = N->rhs;
+		//for (auto s1 : N->AdjacentsList) {   //search among all the adjacent nodes the best one to come from
+		//	tmp_rhs = compute_cost(N, s1) + s1->g;    //the rhs that this node would have if updated
+		//	if (domination(tmp_rhs, current_min_rhs) == fst_dominates) {   //actually update it only if better than old one
+		//		current_min_rhs = tmp_rhs;
+		//	}
+		//}
+		//N->rhs = current_min_rhs;
 	}
 
 	if (queue.find(*N) != queue.end()) {	// if N is in the queue, remove it
@@ -214,7 +222,7 @@ void computeMOPaths() {  //function COMPUTE_MO_PATHS()
 			updateAdjacents(deqN_ptr);
 		}
 
-		calculateKey(ptrToStart); //for next loop
+		calculateKey(ptrToStart); //for next loop (needed??)
 	}
 	std::cout << " => Computed MO Paths.\n\n";
 }
@@ -239,10 +247,10 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 
 		//Java: poll() returns the element at the head of the Queue [returns null if the Queue is empty]
 		Wptr_toNode Ns = expandingStates.front();
-		nonDomSuccs = nonDom_succs(Ns);		// find non-dominated successors, wrt multiobjective c+g
+		nonDomSuccs = nonDom_succs(Ns).NDS_succs;		// find non-dominated successors, wrt multiobjective c+g
 
 		for (auto s1 : nonDomSuccs) {
-			//print_parents(Ns);
+			//print_parents(Ns); //debug
 			if (Ns->parents.empty()) {					// if Ns doesn't have any parent (only iff s=Start): 
 														// ^ for sure s' does not have any parent as well!
 				s1->parents[Ns] = compute_cost(Ns, s1);	// ^ so Ns is added as a parent of s' with corresponding cost c(s, s').		
@@ -331,7 +339,7 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 	std::reverse(solutionPaths.begin(), solutionPaths.end());	//to have it from start to goal
 
 
-	std::cout << " => Generated MO Paths.\n\n";
+	std::cout << " => Generated MO Paths.\n";
 	return solutionPaths;
 }
 
@@ -346,7 +354,7 @@ void updateMap() {
 	for (auto d_ptr : newMap) {
 		N_inOld = findNodeptr((*d_ptr).X, (*d_ptr).Y);
 		if (N_inOld == nullptr) {	//Node not found
-			std::cout << " => coordinates [" << d_ptr->X << "," << d_ptr->Y << "] were not in the old map, so a new node will be created.\n\n"; //debug		
+			std::cout << " => coordinates [" << d_ptr->X << "," << d_ptr->Y << "] were not in the old map, so a new node will be created.\n"; //debug		
 			NodesVect.push_back(std::make_shared<Node>(d_ptr->Name, d_ptr->X, d_ptr->Y, d_ptr->cost, d_ptr->nodeType));	//define new Node
 			nodes_changes = true;
 		}
@@ -377,14 +385,16 @@ void updateMap() {
 	if (nodes_changes && count!=0) {	//count=0 is the first reading
 		if (vehicle_moved) {	//start node has changed	
 			k_m = k_m + heuristic(ptrToGoal);
-			std::cout << " => Vehicle moved (changed start node).\n\n";
+			std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
 		}
-		computeMOPaths();	/*13*/
+		computeMOPaths();	/*13*/   // <=============== why??? ===================
+
+
+
+		for (auto N_ptr : NodesVect) { // fill adjacents to each node -> for sure not optimized!!!!!
+			findAdjacents(N_ptr);
+			//N_ptr->print_Adjacents();
+		} //(can't be done in constructor because not all nodes have been registered yet)
 	}
 
-
-	for (auto N_ptr : NodesVect) { // fill adjacents to each node -> for sure not optimized!!!!!
-		findAdjacents(N_ptr);
-		N_ptr->print_Adjacents();
-	} //(can't be done in constructor because not all nodes have been registered yet)
 }

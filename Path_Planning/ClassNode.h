@@ -79,7 +79,8 @@ public:
 	}
 
 	void print_g_rhs() {
-		std::cout << "[" << X << "," << Y << "] -> g=" << g << " , rhs=" << rhs << std::endl;
+		//std::cout << "[" << X << "," << Y << "] -> g=" << g << " , rhs=" << rhs << std::endl;						//without cost
+		std::cout << "[" << X << "," << Y << "] -> g=" << g << " , rhs=" << rhs << " , c=" << +cost << std::endl;	//with cost
 	}
 
 	void print_Adjacents() {
