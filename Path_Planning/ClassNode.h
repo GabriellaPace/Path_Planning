@@ -59,6 +59,9 @@ public:
 				//if (X != N2.X || Y != N2.Y)  -> CRASH -> comparator has to be strict
 				if (X != N2.X)			
 					return (X < N2.X);	//arbitrary order (not important)
+					/***************************************/
+					/** PROBLEM HERE FOR computeMOPaths() **/
+					/***************************************/
 				else if (Y != N2.Y)
 					return (Y < N2.Y);
 				else

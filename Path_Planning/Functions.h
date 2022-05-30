@@ -153,7 +153,7 @@ struct NDS_struct nonDom_succs(Wptr_toNode N) {				// find non-dominated success
 		}
 		if (nonDom_flag  &&  find(N->AdjacentsVect.begin(), N->AdjacentsVect.end(), adNi) != N->AdjacentsVect.end()) {	// to avoid duplicates
 			NDS_sol.NDS_succs.push_back(adNi);
-			NDS_sol.NDS_rhs = cC_out;
+			NDS_sol.NDS_rhs = cC_out;	//c(N,s1) + g(s1)
 		}
 	}
 
@@ -164,18 +164,6 @@ struct NDS_struct nonDom_succs(Wptr_toNode N) {				// find non-dominated success
 void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
 	if (N->nodeType != goal) {
 		N->rhs = nonDom_succs(N).NDS_rhs;
-
-		// ^ means this (??) :
-
-		//float tmp_rhs;
-		//float current_min_rhs = N->rhs;
-		//for (auto s1 : N->AdjacentsVect) {   //search among all the adjacent nodes the best one to come from
-		//	tmp_rhs = compute_cost(N, s1) + s1->g;    //the rhs that this node would have if updated
-		//	if (domination(tmp_rhs, current_min_rhs) == fst_dominates) {   //actually update it only if better than old one
-		//		current_min_rhs = tmp_rhs;
-		//	}
-		//}
-		//N->rhs = current_min_rhs;
 	}
 
 	if (queue.find(*N) != queue.end()) {	// if N is in the queue, remove it
@@ -214,7 +202,7 @@ void computeMOPaths() {  //function COMPUTE_MO_PATHS()
 		deqN_ptr = findNodeptr(deqN_wOldKey.X, deqN_wOldKey.Y);	 //ptr to de-queued node
 		calculateKey(deqN_ptr);
 
-		if (deqN_wOldKey < *deqN_ptr) {					 //put it back in queue with new key
+		if (deqN_wOldKey < *deqN_ptr) {					 //put it back in queue with new key  ->  when does this happen???
 			queue.insert(*deqN_ptr);
 		}
 		//else if ((*deqN_ptr).rhs < (*deqN_ptr).g) {
