@@ -16,25 +16,15 @@ int main() {
 	while (ptrToStart != ptrToGoal) {
 		solutionPaths = generateMOPaths();
 		if (solutionPaths.empty()) {
-			std::cout << " => There are no avaliable paths - waiting for any edge cost to change.\n\n";
+			std::cout << " => There are no avaliable paths for map {" << count-1 << "}, waiting for any edge cost to change.\n\n";
 		}
 		else {
-			/*REMOVE*/
-			if (count == 2) {
-				for (int i = 0; i < 3; ++i) {
-					NodesVect[i]->print_g_rhs();
-				}
-				std::cout << std::endl;
-				for (int i = 3; i < 6; ++i) {
-					NodesVect[i]->print_g_rhs();
-				}
-			}
-			/*REMOVE*/
 			print_solution(solutionPaths);
 		}
 
 		//sleep(5);
 		queue.clear();	//added by me -> right????????????????????
+
 		updateMap();
 	}
 	std::cout << " => GOAL REACHED. Exiting.\n\n";

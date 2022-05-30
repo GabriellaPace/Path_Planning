@@ -8,12 +8,14 @@
 #include <vector>
 #include <string> //maybe only for debug ?
 #include "robin_hood.h" //faster than <unordered_map>
+//#include <advance> //for list.at()
+//#include <next>
 
 //#define DEBUG  //#ifdef DEBUG   #endif
 /* all_of  -  none_of  -  any_of  -  find_if */
 
 
-float nonDom_2(float g, float rhs) {		// nonDominated (=dominant) = min			
+float nonDom(float g, float rhs) {		// nonDominated (=dominant) = min			
 	return std::min(g, rhs);		// still considering single g and rhs	
 }
 
@@ -72,6 +74,12 @@ domin_res vectDomination(std::vector<float> fst, std::vector<float> snd) {		// v
 }
 */
 
+
+
+
+
+//multi-dom
+/*
 domin_res multi_dom(float c, std::vector<uint8_t> vectC) {	//compare a cost and a vector of costs
 	if (std::all_of(vectC.begin(), vectC.end(), [&c](const uint8_t& v) {return (domination(c, v) == fst_dominates); } )) {		// < (not <=)  -> ok?
 		return fst_dominates;	//fst_completely_cominates
@@ -86,3 +94,4 @@ domin_res multi_dom(float c, std::vector<uint8_t> vectC) {	//compare a cost and 
 		return nonDomination;
 	}
 }	// ^ or is it better with counters? 
+*/

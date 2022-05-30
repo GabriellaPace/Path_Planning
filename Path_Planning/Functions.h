@@ -40,7 +40,7 @@ void print_intVect(std::vector<uint8_t> vect) {
 	std::cout << std::endl;
 }
 
-void print_parents(Wptr_toNode  N) {
+void print_parents(Wptr_toNode N) {
 	std::cout << "Parents of node ";	N->print_Coord();		std::cout << " :\n";
 	for (parents_map::iterator it = N->parents.begin(); it != N->parents.end(); ++it) {
 		std::cout << "Key (coord): ";	(it->first)->print_Coord();
@@ -50,12 +50,19 @@ void print_parents(Wptr_toNode  N) {
 }
 
 void print_solution(std::vector<Wptr_toNode> solution_vect) {
-	std::cout << "SOLUTION PATH for map (" << count-1 << ") optimized for g[1]:\n";
+	std::cout << "SOLUTION PATH for map {" << count-1 << "} optimized for g[1]:\n";
 	for (auto ptr : solution_vect){
 		ptr->print_Coord();
 		std::cout << std::endl;
 	}
 	std::cout << std::endl;
+
+	/**/
+	for (int i = 0; i < 3; ++i)		NodesVect[i]->print_g_rhs();
+	std::cout << std::endl;
+	for (int i = 3; i < 6; ++i)		NodesVect[i]->print_g_rhs();
+	std::cout << std::endl;
+	/**/
 }
 ///////////////////////////////////////// Functions /////////////////////////////////////////
 
@@ -88,7 +95,7 @@ int heuristic(Wptr_toNode N) {		// shortest aereal path (ignoring the grid)
 
 
 void calculateKey(Wptr_toNode N) {
-	N->key.second = nonDom_2(N->g, N->rhs);
+	N->key.second = nonDom(N->g, N->rhs);
 	N->key.first = N->key.second + heuristic(N) + k_m;
 }
 
@@ -103,7 +110,7 @@ void addAdj(Wptr_toNode N, int oriz, int vert) {
 	auto it = find_if(NodesVect.begin(), NodesVect.end(), [&oriz, &vert](const Wptr_toNode& obj) {return ((*obj).X == oriz && (*obj).Y == vert); });
 	if (it != NodesVect.end()) {
 		auto idx = std::distance(NodesVect.begin(), it);
-		N->AdjacentsList.push_back(NodesVect[idx]);
+		N->AdjacentsVect.push_back(NodesVect[idx]);
 	}
 }
 
@@ -130,22 +137,22 @@ struct NDS_struct nonDom_succs(Wptr_toNode N) {				// find non-dominated success
 															//nonDomSuccs = nonDom_[s' in succ(Ns)](sum(c(Ns, s’), g(s’)) 
 	NDS_struct NDS_sol;
 	bool nonDom_flag;
+	Wptr_toNode adNi, adNj;
 	float cC_out, cC_in;  // still considering single g and rhs -> will become vectors //cC = cumulative cost (outer/inner loop)
 
-	for (auto adN : N->AdjacentsList) {		//for each element of AdjacentsList, we'll check if it dominated every other element in the same List
+	for (auto adNi : N->AdjacentsVect) {		//for each element of AdjacentsVect, we'll check if it dominated every other element in the same List
 		nonDom_flag = true;
-		cC_out = compute_cost(N, adN) + adN->g;
+		cC_out = compute_cost(N, adNi) + adNi->g;	
 
-		for (auto inN : N->AdjacentsList) {		//paragona con ogni altro elemento di AdjacentsList [anche con se stesso!!] -> problema? <============	 
-			cC_in = compute_cost(N, inN) + inN->g;
+		for (auto adNj : N->AdjacentsVect) {		//paragona con ogni altro elemento di AdjacentsVect [anche con se stesso!!] -> problema? <============
+			cC_in = compute_cost(N, adNj) + adNj->g;
 			if (domination(cC_out, cC_in) == snd_dominates) {		//it is dominated by someone-else!	//if (!nonDom_b(cC_out, cC_in))
 				nonDom_flag = false;
 				break;
 			}
 		}
-
-		if (nonDom_flag) {
-			NDS_sol.NDS_succs.push_back(adN);
+		if (nonDom_flag  &&  find(N->AdjacentsVect.begin(), N->AdjacentsVect.end(), adNi) != N->AdjacentsVect.end()) {	// to avoid duplicates
+			NDS_sol.NDS_succs.push_back(adNi);
 			NDS_sol.NDS_rhs = cC_out;
 		}
 	}
@@ -162,7 +169,7 @@ void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
 
 		//float tmp_rhs;
 		//float current_min_rhs = N->rhs;
-		//for (auto s1 : N->AdjacentsList) {   //search among all the adjacent nodes the best one to come from
+		//for (auto s1 : N->AdjacentsVect) {   //search among all the adjacent nodes the best one to come from
 		//	tmp_rhs = compute_cost(N, s1) + s1->g;    //the rhs that this node would have if updated
 		//	if (domination(tmp_rhs, current_min_rhs) == fst_dominates) {   //actually update it only if better than old one
 		//		current_min_rhs = tmp_rhs;
@@ -183,7 +190,7 @@ void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
 
 
 void updateAdjacents(Wptr_toNode N) {
-	for (auto A_ptr : N->AdjacentsList) {   //update each node adjacent to the modified one
+	for (auto A_ptr : N->AdjacentsVect) {   //update each node adjacent to the modified one
 		update_rhs(A_ptr);
 	}
 }
@@ -193,32 +200,36 @@ void updateAdjacents(Wptr_toNode N) {
 
 void computeMOPaths() {  //function COMPUTE_MO_PATHS()	
 	Node deqN_wOldKey;
+	Wptr_toNode deqN_ptr;
 	float inf = std::numeric_limits<float>::infinity();	// can't do "using"
 
 	calculateKey(ptrToStart);
 
-	while (!queue.empty()  &&  ( (*ptrToStart).key.second == inf || *ptrToStart < *(queue.begin()) ) ) {	// = start.key dominates the top key in the queue ( < = ordering rule, based on key)
+	//while (!queue.empty()  &&  ( (*ptrToStart).key.second == inf || *ptrToStart < *(queue.begin()) ) ) {	// termination criteria = start.key dominates the top key in the queue ( < = ordering rule, based on key)
+	while (!queue.empty()  &&  !( *ptrToStart < *(queue.begin()) )) {	// termination criteria = start.key dominates the top key in the queue ( < : ordering rule, based on key)
 		auto queue_top = queue.begin();
 		deqN_wOldKey = *queue_top;  //pick top Node in the queue (deqN = de-queued Node)
 		queue.erase(queue_top);		//equivalent to "queue.pop()" -> remove dequeued node from the queue
 
-		Wptr_toNode deqN_ptr = findNodeptr(deqN_wOldKey.X, deqN_wOldKey.Y);	 //ptr to de-queued node
+		deqN_ptr = findNodeptr(deqN_wOldKey.X, deqN_wOldKey.Y);	 //ptr to de-queued node
 		calculateKey(deqN_ptr);
 
 		if (deqN_wOldKey < *deqN_ptr) {					 //put it back in queue with new key
 			queue.insert(*deqN_ptr);
 		}
-		else if ((*deqN_ptr).rhs < (*deqN_ptr).g) {		 // OVERCONSISTENT
+		//else if ((*deqN_ptr).rhs < (*deqN_ptr).g) {
+		else if ( domination(deqN_ptr->rhs, deqN_ptr->g) == fst_dominates ) {		 // OVERCONSISTENT
 			(*deqN_ptr).g = (*deqN_ptr).rhs;
 			updateAdjacents(deqN_ptr);
 		}
-		else if ((*deqN_ptr).rhs > (*deqN_ptr).g) {		 // UNDERCONSISTENT
+		//else if ((*deqN_ptr).rhs > (*deqN_ptr).g) {
+		else if ( domination(deqN_ptr->rhs, deqN_ptr->g) == snd_dominates ) {		// UNDERCONSISTENT
 			(*deqN_ptr).g = std::numeric_limits<float>::infinity();
-			updateAdjacents(deqN_ptr);
 			update_rhs(deqN_ptr);
+			updateAdjacents(deqN_ptr);
 		}
 		else {											 // not dominant and not dominated 
-			(*deqN_ptr).g = nonDom_2((*deqN_ptr).g, (*deqN_ptr).rhs);
+			(*deqN_ptr).g = nonDom((*deqN_ptr).g, (*deqN_ptr).rhs);
 			updateAdjacents(deqN_ptr);
 		}
 
@@ -235,55 +246,65 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 	Deq expandingStates;	// (de)queue of (ptr to) nodes which adjacents should be updated = to expand (FIFO)
 	std::vector<Wptr_toNode> nonDomSuccs;
 	std::vector<Wptr_toNode> solutionPaths;
-	std::vector<uint8_t> cumulativeCs;
-	uint8_t cost_tmp;
+	//std::vector<uint8_t> cumulativeCs;
+	uint8_t cumulativeCs;
+
+	//uint8_t cost_tmp;
 
 /*-- FIRST phase (from start to goal) -----------------------------------------------------------*/
 	expandingStates.push_back(ptrToStart);
 
 	while (!expandingStates.empty()) {
 		//re-initializations
-		cumulativeCs.clear();
+		//cumulativeCs.clear();
+		cumulativeCs = NULL;
 
 		//Java: poll() returns the element at the head of the Queue [returns null if the Queue is empty]
 		Wptr_toNode Ns = expandingStates.front();
 		nonDomSuccs = nonDom_succs(Ns).NDS_succs;		// find non-dominated successors, wrt multiobjective c+g
 
 		for (auto s1 : nonDomSuccs) {
-			//print_parents(Ns); //debug
 			if (Ns->parents.empty()) {					// if Ns doesn't have any parent (only iff s=Start): 
 														// ^ for sure s' does not have any parent as well!
 				s1->parents[Ns] = compute_cost(Ns, s1);	// ^ so Ns is added as a parent of s' with corresponding cost c(s, s').		
-				//print_parents(s1); //debug
 			}
 			else {										// if Ns does have predefined parents
 				/*10*/
-				cost_tmp = compute_cost(Ns, s1);
+				//cost_tmp = compute_cost(Ns, s1);
 				for (auto&[s1_ptr, s1_cost] : Ns->parents) {
-					cumulativeCs.push_back(cost_tmp + s1_cost);
+					//cumulativeCs.push_back(cost_tmp + s1_cost);
+					cumulativeCs += s1_cost;	//"aggregated" cost??
 				}
+				cumulativeCs += compute_cost(Ns, s1);
 
 				/*11-12*/
 				if (s1->parents.empty()) {
-					s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeC);
+					//s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeC);
+					s1->parents[Ns] = cumulativeCs;
 					//std::cout << "cumulativeCs for parents of ";	Ns->print_Coord();	std::cout << std::endl; // debug
 					//print_intVect(cumulativeCs); // debug
 				}
 				else {
 					for (auto&[s2_ptr, s2_cost] : s1->parents) {		//for (auto s'' : s'.parents() ) {  
-						if (multi_dom(s2_cost, cumulativeCs) == areEqual || multi_dom(s2_cost, cumulativeCs) == fst_dominates) {
+						//if (multi_dom(s2_cost, cumulativeCs) == areEqual || multi_dom(s2_cost, cumulativeCs) == fst_dominates) {
+						if (domination(s2_cost, cumulativeCs) == areEqual || domination(s2_cost, cumulativeCs) == fst_dominates) {
+
 							break;
 						}
-						else if (multi_dom(s2_cost, cumulativeCs) == snd_dominates) {
+						//else if (multi_dom(s2_cost, cumulativeCs) == snd_dominates) {
+						else if (domination(s2_cost, cumulativeCs) == snd_dominates) {
 							s1->parents.erase(s2_ptr);
-							s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeC);
+							//s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeC);
+							s1->parents[Ns] = cumulativeCs;
 						}
 						else {
-							for (auto cC : cumulativeCs) {
-								//for (auto eC : s1->parents[s2_ptr]) {
+							//for (auto cC : cumulativeCs) {	// = for each type of cost
+								//for (auto eC : s1->parents[s2_ptr]) {	// = for each element of the cost vector (=type of cost) (??)
 								uint8_t eC = s1->parents[s2_ptr];
+								uint8_t cC = cumulativeCs;
 								if (domination(cC, eC) == areEqual || domination(cC, eC) == snd_dominates) {
-									std::remove(cumulativeCs.begin(), cumulativeCs.end(), cC);
+									//std::remove(cumulativeCs.begin(), cumulativeCs.end(), cC);
+									cumulativeCs = NULL;	//??????
 									break;
 								}
 								else if (domination(cC, eC) == fst_dominates) {
@@ -294,9 +315,11 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 								if (s1->parents.empty()) {	//if (s1.parents(s2_ptr) == null) {
 									s1->parents.erase(s2_ptr);	//s1.parents().erase(s2_ptr);
 								}
-							}
-							if (cumulativeCs.empty()) {	//if (cumulativeCs != null) {
-								s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeCs);
+							//}
+							//if (! cumulativeCs.empty()) {	//if (cumulativeCs != null) {
+							if (cumulativeCs != NULL) {	//if (cumulativeCs != null) {
+								//s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeCs);
+								s1->parents[Ns] = cumulativeCs;
 							}
 						}
 					}
@@ -382,19 +405,18 @@ void updateMap() {
 	}
 
 	// once we finished updating the map:
-	if (nodes_changes && count!=0) {	//count=0 is the first reading
-		if (vehicle_moved) {	//start node has changed	
-			k_m = k_m + heuristic(ptrToGoal);
-			std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
+	if (nodes_changes) {
+		if (count > 1) {	//count=0+1 is the first reading
+			if (vehicle_moved) {	//start node has changed	
+				k_m = k_m + heuristic(ptrToGoal);
+				std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
+			}
+			computeMOPaths();	/*13*/   // <=============== why??? ===================
 		}
-		computeMOPaths();	/*13*/   // <=============== why??? ===================
-
-
 
 		for (auto N_ptr : NodesVect) { // fill adjacents to each node -> for sure not optimized!!!!!
 			findAdjacents(N_ptr);
 			//N_ptr->print_Adjacents();
 		} //(can't be done in constructor because not all nodes have been registered yet)
 	}
-
 }

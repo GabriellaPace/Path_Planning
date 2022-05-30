@@ -50,5 +50,5 @@ void ReadMap() {
 		return;
 	}
 
-	std::cout << " => RECEIVED NEW MAP\n";
+	std::cout << " => RECEIVED NEW MAP: {" << count-1 << "}\n";
 }

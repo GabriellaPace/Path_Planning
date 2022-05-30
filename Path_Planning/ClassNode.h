@@ -21,7 +21,7 @@ public:
 
 	std::pair<float, float> key;
 
-	std::vector<Wptr_toNode> AdjacentsList;	//all nodes adjacent to current one (const??)
+	std::vector<Wptr_toNode> AdjacentsVect;	//all nodes adjacent to current one (const??)
 	robin_hood::unordered_map < Wptr_toNode, uint8_t > parents;    //key: ptr to node, value: cumulative cost
 	//robin_hood::unordered_map < Wptr_toNode, std::vector<uint8_t> > parents;    //key: ptr to node, value: cumulative cost(s)
 
@@ -68,6 +68,27 @@ public:
 	}
 
 
+	//bool operator <= (const Node &N2) const {	// used in ComputeMOPaths()
+	//	if (key.first <= N2.key.first)
+	//		return true;
+	//	else if (key.first > N2.key.first)
+	//		return false;
+	//	else { // key.first == N2.key.first
+	//		if (key.second <= N2.key.second)
+	//			return true;
+	//		else if (key.second > N2.key.second)
+	//			return false;
+	//		//else {
+	//			//if (X != N2.X)
+	//			//	return (X < N2.X);	//arbitrary order (not important)
+	//			//else if (Y != N2.Y)
+	//			//	return (Y < N2.Y);
+	//			//else
+	//				//return true;
+	//		//}
+	//	}
+	//}
+
 
 //////////////////////////////////   debug Methods   ////////////////////////////////
 	void print_Coord() {
@@ -88,7 +109,7 @@ public:
 		print_Coord();
 		std::cout << " : ";
 		
-		for (auto A_ptr : AdjacentsList) {
+		for (auto A_ptr : AdjacentsVect) {
 			(*A_ptr).print_Coord();
 			std::cout << "  ";
 		}
