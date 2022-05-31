@@ -3,6 +3,19 @@
 std::vector<Wptr_toNode> solutionPaths;
 
 int main() {
+	/*
+	Node n('m', 1, 0, 10, any);
+	n.key.first = 30;
+	n.key.second = 20;
+	Node nS('M', 0, 0, 10, start);
+	nS.key.first = 30;
+	nS.key.second = 20;
+	if (n < nS)
+		std::cout << "OK (n < nS)\n";
+	else
+		std::cout << "WRONG (n > nS)\n";
+	*/
+
 	updateMap();
 
 // function PLAN():
@@ -23,7 +36,7 @@ int main() {
 		}
 
 		//sleep(5);
-		queue.clear();	//added by me -> right????????????????????
+		queue.clear();	//added by me -> maybe uselees (hopefully not wrong)
 
 		updateMap();
 	}

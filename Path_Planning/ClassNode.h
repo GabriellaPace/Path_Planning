@@ -57,41 +57,36 @@ public:
 				return false;
 			else { // k1==k1 & k2==k2	->	to allow different nodes with the same key to be both in the queue
 				//if (X != N2.X || Y != N2.Y)  -> CRASH -> comparator has to be strict
-				if (X != N2.X)			
-					return (X < N2.X);	//arbitrary order (not important)
-					/***************************************/
-					/** PROBLEM HERE FOR computeMOPaths() **/
-					/***************************************/
-				else if (Y != N2.Y)
-					return (Y < N2.Y);
-				else
+
+				//if (nodeType == start)// to avoid premature termination in computeMOPaths() -> if Start has same key of top-node, execute! (so appears >)
+				//	return true;			// for a strict weak ordering, comp(x, x) must be false !!!
+				//else if (N2.nodeType == start)
+				//	return false;
+
+				//else if (X != N2.X)			
+				//	return (X < N2.X);	//arbitrary order (not important)
+				//else if (Y != N2.Y)
+				//	return (Y < N2.Y);
+				//else
+				//	return false;
+
+
+
+				if (nodeType != start && N2.nodeType != start) {
+					if (X != N2.X)
+						return (X < N2.X);	//arbitrary order (not important)
+					else if (Y != N2.Y)
+						return (Y < N2.Y);
+					else
+						return false;
+				}
+				else if (nodeType != start)		// : N2.nodeType == start
 					return false;
+				else //if (N2.nodeType != start)	// : nodeType == start
+					return true;
 			}
 		}
 	}
-
-
-	//bool operator <= (const Node &N2) const {	// used in ComputeMOPaths()
-	//	if (key.first <= N2.key.first)
-	//		return true;
-	//	else if (key.first > N2.key.first)
-	//		return false;
-	//	else { // key.first == N2.key.first
-	//		if (key.second <= N2.key.second)
-	//			return true;
-	//		else if (key.second > N2.key.second)
-	//			return false;
-	//		//else {
-	//			//if (X != N2.X)
-	//			//	return (X < N2.X);	//arbitrary order (not important)
-	//			//else if (Y != N2.Y)
-	//			//	return (Y < N2.Y);
-	//			//else
-	//				//return true;
-	//		//}
-	//	}
-	//}
-
 
 //////////////////////////////////   debug Methods   ////////////////////////////////
 	void print_Coord() {
