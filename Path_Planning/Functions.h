@@ -151,7 +151,7 @@ struct NDS_struct nonDom_succs(Wptr_toNode N) {				// find non-dominated success
 				break;
 			}
 		}
-		if (nonDom_flag  &&  find(N->AdjacentsVect.begin(), N->AdjacentsVect.end(), adNi) != N->AdjacentsVect.end()) {	// to avoid duplicates
+		if (nonDom_flag  &&  find(NDS_sol.NDS_succs.begin(), NDS_sol.NDS_succs.end(), adNi) == NDS_sol.NDS_succs.end()) {	// to avoid duplicates
 			NDS_sol.NDS_succs.push_back(adNi);
 			NDS_sol.NDS_rhs = cC_out;	//c(N,s1) + g(s1)
 		}
@@ -236,7 +236,6 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 	std::vector<Wptr_toNode> solutionPaths;
 	//std::vector<uint8_t> cumulativeCs;
 	uint8_t cumulativeCs;
-
 	//uint8_t cost_tmp;
 
 /*-- FIRST phase (from start to goal) -----------------------------------------------------------*/
@@ -249,6 +248,7 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 
 		//Java: poll() returns the element at the head of the Queue [returns null if the Queue is empty]
 		Wptr_toNode Ns = expandingStates.front();
+		expandingStates.pop_front();
 		nonDomSuccs = nonDom_succs(Ns).NDS_succs;		// find non-dominated successors, wrt multiobjective c+g
 
 		for (auto s1 : nonDomSuccs) {
@@ -320,7 +320,7 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 				expandingStates.push_back(s1);
 			}
 		}
-		expandingStates.pop_front();
+		
 	}
 
 

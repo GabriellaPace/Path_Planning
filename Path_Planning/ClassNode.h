@@ -63,27 +63,25 @@ public:
 				//else if (N2.nodeType == start)
 				//	return false;
 
-				//else if (X != N2.X)			
-				//	return (X < N2.X);	//arbitrary order (not important)
-				//else if (Y != N2.Y)
-				//	return (Y < N2.Y);
-				//else
-				//	return false;
-
-
-
-				if (nodeType != start && N2.nodeType != start) {
-					if (X != N2.X)
-						return (X < N2.X);	//arbitrary order (not important)
-					else if (Y != N2.Y)
-						return (Y < N2.Y);
-					else
-						return false;
-				}
-				else if (nodeType != start)		// : N2.nodeType == start
+				if (X != N2.X)			
+					return (X > N2.X);	//arbitrary order (not important)
+				else if (Y != N2.Y)
+					return (Y > N2.Y);
+				else
 					return false;
-				else //if (N2.nodeType != start)	// : nodeType == start
-					return true;
+
+				//if (nodeType != start && N2.nodeType != start) {
+				//	if (X != N2.X)
+				//		return (X < N2.X);	//arbitrary order (not important)
+				//	else if (Y != N2.Y)
+				//		return (Y < N2.Y);
+				//	else
+				//		return false;
+				//}
+				//else if (nodeType != start)		// : N2.nodeType == start
+				//	return false;
+				//else //if (N2.nodeType != start)	// : nodeType == start
+				//	return true;
 			}
 		}
 	}
