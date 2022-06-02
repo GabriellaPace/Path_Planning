@@ -237,6 +237,7 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 	//std::vector<uint8_t> cumulativeCs;
 	uint8_t cumulativeCs;
 	//uint8_t cost_tmp;
+	Wptr_toNode Ns;
 
 /*-- FIRST phase (from start to goal) -----------------------------------------------------------*/
 	expandingStates.push_back(ptrToStart);
@@ -247,14 +248,15 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 		cumulativeCs = NULL;
 
 		//Java: poll() returns the element at the head of the Queue [returns null if the Queue is empty]
-		Wptr_toNode Ns = expandingStates.front();
+		Ns = expandingStates.front();
 		expandingStates.pop_front();
 		nonDomSuccs = nonDom_succs(Ns).NDS_succs;		// find non-dominated successors, wrt multiobjective c+g
 
 		for (auto s1 : nonDomSuccs) {
-			if (Ns->parents.empty()) {					// if Ns doesn't have any parent (only iff s=Start): 
-														// ^ for sure s' does not have any parent as well!
-				s1->parents[Ns] = compute_cost(Ns, s1);	// ^ so Ns is added as a parent of s' with corresponding cost c(s, s').		
+			if (Ns->parents.empty()) {					// if Ns doesn't have any parent (only iff s=Start): for sure s' does not have any parent as well!
+				//uint8_t a = compute_cost(Ns, s1);
+				//s1->parents[Ns] = a;
+				s1->parents[Ns] = compute_cost(Ns, s1);	// ^ so Ns is added as a parent of s' with corresponding cost c(s, s').
 			}
 			else {										// if Ns does have predefined parents
 				/*10*/
@@ -287,25 +289,25 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 						}
 						else {
 							//for (auto cC : cumulativeCs) {	// = for each type of cost
-								//for (auto eC : s1->parents[s2_ptr]) {	// = for each element of the cost vector (=type of cost) (??)
-								uint8_t eC = s1->parents[s2_ptr];
-								uint8_t cC = cumulativeCs;
-								if (domination(cC, eC) == areEqual || domination(cC, eC) == snd_dominates) {
-									//std::remove(cumulativeCs.begin(), cumulativeCs.end(), cC);
-									cumulativeCs = NULL;	//??????
-									break;
-								}
-								else if (domination(cC, eC) == fst_dominates) {
-									s1->parents.erase(s2_ptr);	//s1.parents(s2_ptr).erase(eC);
-									break;
-								}
+								//for (auto eC : s1->parents[s2_ptr]) {
+									uint8_t eC = s1->parents[s2_ptr];
+									uint8_t cC = cumulativeCs;
+									if (domination(cC, eC) == areEqual || domination(cC, eC) == snd_dominates) {
+										//std::remove(cumulativeCs.begin(), cumulativeCs.end(), cC);
+										cumulativeCs = NULL;	//??????
+										break;
+									}
+									else if (domination(cC, eC) == fst_dominates) {
+										s1->parents.erase(s2_ptr);	//s1.parents(s2_ptr).erase(eC);
+										break;
+									}
 								//}					
 								if (s1->parents.empty()) {	//if (s1.parents(s2_ptr) == null) {
 									s1->parents.erase(s2_ptr);	//s1.parents().erase(s2_ptr);
 								}
 							//}
-							//if (! cumulativeCs.empty()) {	//if (cumulativeCs != null) {
-							if (cumulativeCs != NULL) {	//if (cumulativeCs != null) {
+							//if (! cumulativeCs.empty()) {
+							if (cumulativeCs != NULL) {
 								//s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeCs);
 								s1->parents[Ns] = cumulativeCs;
 							}
@@ -326,7 +328,10 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 
 /*-- SECOND phase (from goal to start) ----------------------------------------------------------*/
 		//solutionPaths = construct paths recursively traversing parents;
-	Wptr_toNode N = ptrToGoal;
+	float min_g1;
+	Wptr_toNode parent_toPush;
+
+	Wptr_toNode N = ptrToGoal;	//might change it to Ns (to avoid useless new defintition)
 	solutionPaths.push_back(N);
 
 	while (N->nodeType != start) {
@@ -336,16 +341,16 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 		}
 
 		// (*) : repeat same for the other entries of the cost vector -> to obtain a path which each optimize one of the costs
-		float min_g1 = std::numeric_limits<float>::infinity();
-		Wptr_toNode par_toPush;
+		min_g1 = std::numeric_limits<float>::infinity();
+		parent_toPush = NULL;
 		for (auto&[par_ptr, par_cost] : N->parents) {
 			if (par_cost < min_g1) {
 				min_g1 = par_cost;
-				par_toPush = par_ptr;
+				parent_toPush = par_ptr;
 			}
 		}
-		solutionPaths.push_back(par_toPush);
-		N = par_toPush;	//for next iteration
+		solutionPaths.push_back(parent_toPush);
+		N = parent_toPush;	//for next iteration
 	}
 	std::reverse(solutionPaths.begin(), solutionPaths.end());	//to have it from start to goal
 
