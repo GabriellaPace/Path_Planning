@@ -26,11 +26,16 @@ void ReadMap() {
 	}
 	else if (count == 1) {
 		newMap.push_back(std::make_shared<dummyNode>('5', 1, 1, 60, any));
+		
+		//newMap.push_back(std::make_shared<dummyNode>('1', 1, 0, 5, any));
+		//newMap.push_back(std::make_shared<dummyNode>('6', 2, 1, 2, goal));
+		//reducing only the cost of (1,0) doesn't have the same effect, because the cost keeps being the max beetween two nodes
 		++count;
 	}
 	else if (count == 2) {
 		newMap.push_back(std::make_shared<dummyNode>('0', 0, 0, 10, any));	//ASSUMPTION: this fix always happen (so we don't heve 2 "start")
-		newMap.push_back(std::make_shared<dummyNode>('1', 1, 0, 10, start));
+		//newMap.push_back(std::make_shared<dummyNode>('1', 1, 0, 20, start));
+		newMap.push_back(std::make_shared<dummyNode>('4', 1, 1, 10, start));
 		newMap.push_back(std::make_shared<dummyNode>('6', 3, 0, 10, any));
 		++count;
 	}
@@ -50,5 +55,5 @@ void ReadMap() {
 		return;
 	}
 
-	std::cout << " => RECEIVED NEW MAP: {" << count-1 << "}\n";
+	std::cout << "*********************************************\n => RECEIVED NEW MAP: {" << count-1 << "}\n";
 }

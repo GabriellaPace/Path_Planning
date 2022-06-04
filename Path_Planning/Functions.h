@@ -279,7 +279,7 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 						}
 						//else if (multi_dom(s2_cost, cumulativeCs) == snd_dominates) {
 						else if (domination(s2_cost, cumulativeCs) == snd_dominates) {
-							//s1->parents.erase(s2_ptr);
+							s1->parents.erase(s2_ptr);
 							//s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeC);
 							s1->parents[Ns] = cumulativeCs;
 						}
@@ -303,7 +303,7 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 									s1->parents.erase(s2_ptr);	//s1.parents().erase(s2_ptr);
 								}
 							//}
-							//if (! cumulativeCs.empty()) {re
+							//if (! cumulativeCs.empty()) {
 							if (cumulativeCs != NULL) {
 								//s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeCs);
 								s1->parents[Ns] = cumulativeCs;
@@ -312,17 +312,18 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 					}
 				}
 
-				//std::cout << "--------- LOOP PARENTS ---------\n";
-				//std::cout << "Parent of node (Ns) = "; Ns->print_Coord();		std::cout << " :\n";
-				//for (auto&[par_ptr, par_cost] : Ns->parents) {
-				//	par_ptr->print_Coord();   std::cout << "  :  " << +par_cost <<std::endl;
+				//if (count == 3) {
+				//	std::cout << "--------- LOOP PARENTS ---------\n";
+				//	std::cout << "Parent of node (Ns) = "; Ns->print_Coord();		std::cout << " :\n";
+				//	for (auto&[par_ptr, par_cost] : Ns->parents) {
+				//		par_ptr->print_Coord();   std::cout << "  :  " << +par_cost << std::endl;
+				//	}
+				//	std::cout << "Parent of node (s1) = "; s1->print_Coord();		std::cout << " :\n";
+				//	for (auto&[par_ptr, par_cost] : s1->parents) {
+				//		par_ptr->print_Coord();	std::cout << "  :  " << +par_cost << std::endl;
+				//	}
+				//	std::cout << std::endl;
 				//}
-				//std::cout << "Parent of node (s1) = "; s1->print_Coord();		std::cout << " :\n";
-				//for (auto&[par_ptr, par_cost] : s1->parents) {
-				//	par_ptr->print_Coord();	std::cout << "  :  " << +par_cost << std::endl;
-				//}
-				//std::cout << std::endl;
-
 
 			}
 
@@ -335,14 +336,15 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 		
 	}
 
-
-	//std::cout << "--------- ALL PARENTS ---------\n";
-	//for (auto N : NodesVect) {
-	//	std::cout << "Parent of node = "; N->print_Coord();		std::cout << " :\n";
-	//	for (auto&[par_ptr, par_cost] : N->parents) {
-	//		par_ptr->print_Coord();   std::cout << "  :  " << +par_cost << std::endl;
+	//if (count == 3) {
+	//	std::cout << "--------- ALL PARENTS ---------\n";
+	//	for (auto N : NodesVect) {
+	//		std::cout << "Parent of node = "; N->print_Coord();		std::cout << " :\n";
+	//		for (auto&[par_ptr, par_cost] : N->parents) {
+	//			par_ptr->print_Coord();   std::cout << "  :  " << +par_cost << std::endl;
+	//		}
+	//		std::cout << std::endl;
 	//	}
-	//	std::cout << std::endl;
 	//}
 
 
@@ -406,7 +408,7 @@ void updateMap() {
 				//added by me: (is there a better way to automatically update parents??)  <=============================================================
 				for (auto adj : N_inOld->AdjacentsVect) {
 					if ( adj->parents.find(N_inOld) != adj->parents.end() ) {
-						adj->parents.erase(N_inOld);
+						//adj->parents.erase(N_inOld);
 						//adj->parents[N_inOld] = std::numeric_limits<float>::infinity();
 
 						uint8_t cumulativeCs = NULL;
