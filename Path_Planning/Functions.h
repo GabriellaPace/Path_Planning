@@ -254,8 +254,6 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 
 		for (auto s1 : nonDomSuccs) {
 			if (Ns->parents.empty()) {					// if Ns doesn't have any parent (only iff s=Start): for sure s' does not have any parent as well!
-				//uint8_t a = compute_cost(Ns, s1);
-				//s1->parents[Ns] = a;
 				s1->parents[Ns] = compute_cost(Ns, s1);	// ^ so Ns is added as a parent of s' with corresponding cost c(s, s').
 			}
 			else {										// if Ns does have predefined parents
@@ -271,8 +269,6 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 				if (s1->parents.empty()) {
 					//s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeC);
 					s1->parents[Ns] = cumulativeCs;
-					//std::cout << "cumulativeCs for parents of ";	Ns->print_Coord();	std::cout << std::endl; // debug
-					//print_intVect(cumulativeCs); // debug
 				}
 				else {
 					for (auto&[s2_ptr, s2_cost] : s1->parents) {		//for (auto s'' : s'.parents() ) {  
@@ -283,12 +279,12 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 						}
 						//else if (multi_dom(s2_cost, cumulativeCs) == snd_dominates) {
 						else if (domination(s2_cost, cumulativeCs) == snd_dominates) {
-							s1->parents.erase(s2_ptr);
+							//s1->parents.erase(s2_ptr);
 							//s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeC);
 							s1->parents[Ns] = cumulativeCs;
 						}
 						else {
-							//for (auto cC : cumulativeCs) {	// = for each type of cost
+							//for (auto cC : cumulativeCs) {	// = for each type of cost (?)
 								//for (auto eC : s1->parents[s2_ptr]) {
 									uint8_t eC = s1->parents[s2_ptr];
 									uint8_t cC = cumulativeCs;
@@ -301,12 +297,13 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 										s1->parents.erase(s2_ptr);	//s1.parents(s2_ptr).erase(eC);
 										break;
 									}
-								//}					
-								if (s1->parents.empty()) {	//if (s1.parents(s2_ptr) == null) {
+								//}		
+								if (s1->parents[s2_ptr] == NULL) { //how can this happen??????????
+								//if (s1->parents.empty()) {	//if (s1.parents(s2_ptr) == null) {
 									s1->parents.erase(s2_ptr);	//s1.parents().erase(s2_ptr);
 								}
 							//}
-							//if (! cumulativeCs.empty()) {
+							//if (! cumulativeCs.empty()) {re
 							if (cumulativeCs != NULL) {
 								//s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeCs);
 								s1->parents[Ns] = cumulativeCs;
@@ -314,6 +311,19 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 						}
 					}
 				}
+
+				//std::cout << "--------- LOOP PARENTS ---------\n";
+				//std::cout << "Parent of node (Ns) = "; Ns->print_Coord();		std::cout << " :\n";
+				//for (auto&[par_ptr, par_cost] : Ns->parents) {
+				//	par_ptr->print_Coord();   std::cout << "  :  " << +par_cost <<std::endl;
+				//}
+				//std::cout << "Parent of node (s1) = "; s1->print_Coord();		std::cout << " :\n";
+				//for (auto&[par_ptr, par_cost] : s1->parents) {
+				//	par_ptr->print_Coord();	std::cout << "  :  " << +par_cost << std::endl;
+				//}
+				//std::cout << std::endl;
+
+
 			}
 
 			if ((s1->parents.find(Ns) != s1->parents.end()) &&
@@ -324,6 +334,16 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 		}
 		
 	}
+
+
+	//std::cout << "--------- ALL PARENTS ---------\n";
+	//for (auto N : NodesVect) {
+	//	std::cout << "Parent of node = "; N->print_Coord();		std::cout << " :\n";
+	//	for (auto&[par_ptr, par_cost] : N->parents) {
+	//		par_ptr->print_Coord();   std::cout << "  :  " << +par_cost << std::endl;
+	//	}
+	//	std::cout << std::endl;
+	//}
 
 
 /*-- SECOND phase (from goal to start) ----------------------------------------------------------*/
@@ -381,6 +401,24 @@ void updateMap() {
 				N_inOld->nodeType = d_ptr->nodeType;
 				update_rhs(N_inOld);			// = "Update Vertex" /*12*/
 				updateAdjacents(N_inOld);		//should I update all the adjacent nodes' rhs??  <======================================================
+
+
+				//added by me: (is there a better way to automatically update parents??)  <=============================================================
+				for (auto adj : N_inOld->AdjacentsVect) {
+					if ( adj->parents.find(N_inOld) != adj->parents.end() ) {
+						adj->parents.erase(N_inOld);
+						//adj->parents[N_inOld] = std::numeric_limits<float>::infinity();
+
+						uint8_t cumulativeCs = NULL;
+						for (auto&[s1_ptr, s1_cost] : N_inOld->parents) {
+							//cumulativeCs.push_back(cost_tmp + s1_cost);
+							cumulativeCs += s1_cost;	//"aggregated" cost??
+						}
+						cumulativeCs += compute_cost(N_inOld, adj);
+						adj->parents[N_inOld] = cumulativeCs;
+					}
+				}
+				// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
 
 			}
 			//else: Node found but there were no modifications to it
