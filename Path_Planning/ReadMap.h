@@ -15,7 +15,7 @@ int count = 0;	// to change map in different iterations
 void ReadMap() {
 	newMap.clear();
 
-	if (count == 0) {
+	if (count == 0) {			//ok
 		newMap.push_back(std::make_shared<dummyNode>('0', 0, 0, 10, start));
 		newMap.push_back(std::make_shared<dummyNode>('1', 1, 0, 20, any));
 		newMap.push_back(std::make_shared<dummyNode>('2', 2, 0, 10, any));
@@ -24,7 +24,7 @@ void ReadMap() {
 		newMap.push_back(std::make_shared<dummyNode>('6', 2, 1, 10, goal));
 		++count;
 	}
-	else if (count == 1) {
+	else if (count == 1) {		//ok
 		newMap.push_back(std::make_shared<dummyNode>('5', 1, 1, 60, any));
 		
 		//newMap.push_back(std::make_shared<dummyNode>('1', 1, 0, 5, any));
@@ -35,8 +35,8 @@ void ReadMap() {
 	else if (count == 2) {
 		newMap.push_back(std::make_shared<dummyNode>('0', 0, 0, 10, any));	//ASSUMPTION: this fix always happen (so we don't heve 2 "start")
 		//newMap.push_back(std::make_shared<dummyNode>('1', 1, 0, 20, start));
-		newMap.push_back(std::make_shared<dummyNode>('4', 1, 1, 10, start));
-		newMap.push_back(std::make_shared<dummyNode>('6', 3, 0, 10, any));
+		newMap.push_back(std::make_shared<dummyNode>('5', 1, 1, 60, start));
+		newMap.push_back(std::make_shared<dummyNode>('7', 3, 0, 10, any));
 		++count;
 	}
 	//else if (count == 3) {												// it doesn't support goal change!
@@ -45,9 +45,9 @@ void ReadMap() {
 	//	newMap.push_back(std::make_shared<dummyNode>('6', 3, 0, 10, goal));
 	//	++count;
 	//}
-	else if (count == 3) {
+	else if (count == 3) {		//ok
 		newMap.push_back(std::make_shared<dummyNode>('4', 1, 1, 10, any));
-		newMap.push_back(std::make_shared<dummyNode>('5', 2, 1, 10, start)); //and goal
+		newMap.push_back(std::make_shared<dummyNode>('5', 2, 1, 10, start)); //and goal  ->  ptrToStart == ptrToGoal
 
 		++count;
 	}

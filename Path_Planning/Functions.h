@@ -245,7 +245,7 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 	while (!expandingStates.empty()) {
 		//re-initializations
 		//cumulativeCs.clear();
-		cumulativeCs = NULL;
+		//cumulativeCs = NULL;
 
 		//Java: poll() returns the element at the head of the Queue [returns null if the Queue is empty]
 		Ns = expandingStates.front();
@@ -253,16 +253,19 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 		nonDomSuccs = nonDom_succs(Ns).NDS_succs;		// find non-dominated successors, wrt multiobjective c+g
 
 		for (auto s1 : nonDomSuccs) {
+			cumulativeCs = NULL;	//re-initialization
+
 			if (Ns->parents.empty()) {					// if Ns doesn't have any parent (only iff s=Start): for sure s' does not have any parent as well!
 				s1->parents[Ns] = compute_cost(Ns, s1);	// ^ so Ns is added as a parent of s' with corresponding cost c(s, s').
 			}
 			else {										// if Ns does have predefined parents
-				/*10*/
+				/*10*/ // cumulativeC = sum( c(Ns,s1), Ns.parents().values() ) 
 				//cost_tmp = compute_cost(Ns, s1);
 				for (auto&[s1_ptr, s1_cost] : Ns->parents) {
 					//cumulativeCs.push_back(cost_tmp + s1_cost);
 					cumulativeCs += s1_cost;	//"aggregated" cost??
 				}
+				uint8_t a = compute_cost(Ns, s1);
 				cumulativeCs += compute_cost(Ns, s1);
 
 				/*11-12*/
@@ -283,7 +286,7 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 							//s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeC);
 							s1->parents[Ns] = cumulativeCs;
 						}
-						else {
+						else {	// = non-domination: never happens until the costs are floats
 							//for (auto cC : cumulativeCs) {	// = for each type of cost (?)
 								//for (auto eC : s1->parents[s2_ptr]) {
 									uint8_t eC = s1->parents[s2_ptr];
@@ -299,7 +302,6 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 									}
 								//}		
 								if (s1->parents[s2_ptr] == NULL) { //how can this happen??????????
-								//if (s1->parents.empty()) {	//if (s1.parents(s2_ptr) == null) {
 									s1->parents.erase(s2_ptr);	//s1.parents().erase(s2_ptr);
 								}
 							//}
@@ -336,22 +338,22 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 		
 	}
 
-	//if (count == 3) {
-	//	std::cout << "--------- ALL PARENTS ---------\n";
-	//	for (auto N : NodesVect) {
-	//		std::cout << "Parent of node = "; N->print_Coord();		std::cout << " :\n";
-	//		for (auto&[par_ptr, par_cost] : N->parents) {
-	//			par_ptr->print_Coord();   std::cout << "  :  " << +par_cost << std::endl;
-	//		}
-	//		std::cout << std::endl;
-	//	}
-	//}
+	if (count == 3) {
+		std::cout << "--------- ALL PARENTS ---------\n";
+		for (auto N : NodesVect) {
+			std::cout << "Parent of node = "; N->print_Coord();		std::cout << " :\n";
+			for (auto&[par_ptr, par_cost] : N->parents) {
+				par_ptr->print_Coord();   std::cout << "  :  " << +par_cost << std::endl;
+			}
+			std::cout << std::endl;
+		}
+	}
 
 
 /*-- SECOND phase (from goal to start) ----------------------------------------------------------*/
 		//solutionPaths = construct paths recursively traversing parents;
 	float min_g1;
-	Wptr_toNode parent_toPush;
+	Wptr_toNode parent_toPush = NULL;
 
 	Wptr_toNode N = ptrToGoal;	//might change it to Ns (to avoid useless new defintition)
 	solutionPaths.push_back(N);
@@ -364,8 +366,12 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 
 		// (*) : repeat same for the other entries of the cost vector -> to obtain a path which each optimize one of the costs
 		min_g1 = std::numeric_limits<float>::infinity();
-		parent_toPush = NULL;
+		//parent_toPush = NULL;
 		for (auto&[par_ptr, par_cost] : N->parents) {
+
+			//std::cout << "Parent of node = "; N->print_Coord();	std::cout << " :\n";
+			//par_ptr->print_Coord();   std::cout << "  :  " << +par_cost << std::endl;
+
 			if (par_cost < min_g1) {
 				min_g1 = par_cost;
 				parent_toPush = par_ptr;
@@ -411,13 +417,24 @@ void updateMap() {
 						//adj->parents.erase(N_inOld);
 						//adj->parents[N_inOld] = std::numeric_limits<float>::infinity();
 
+
+						//uint8_t tmp_s1_cost = 0;
 						uint8_t cumulativeCs = NULL;
 						for (auto&[s1_ptr, s1_cost] : N_inOld->parents) {
 							//cumulativeCs.push_back(cost_tmp + s1_cost);
 							cumulativeCs += s1_cost;	//"aggregated" cost??
+							//tmp_s1_cost = s1_cost;
 						}
 						cumulativeCs += compute_cost(N_inOld, adj);
-						adj->parents[N_inOld] = cumulativeCs;
+
+						/*
+						if (domination(tmp_s1_cost, cumulativeCs) == fst_dominates) {	// tmp_s1_cost < cumulativeCs
+							adj->parents[N_inOld] = cumulativeCs;
+						}
+						else {
+							adj->parents.clear();
+						}
+						*/
 					}
 				}
 				// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
@@ -441,7 +458,7 @@ void updateMap() {
 	if (nodes_changes) {
 		if (count > 1) {	//count=0+1 is the first reading
 			if (vehicle_moved) {	//start node has changed	
-				k_m = k_m + heuristic(ptrToGoal);
+				k_m += heuristic(ptrToGoal);
 				std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
 			}
 			computeMOPaths();	/*13*/   // <=============== why??? ===================
@@ -449,7 +466,6 @@ void updateMap() {
 
 		for (auto N_ptr : NodesVect) { // fill adjacents to each node -> for sure not optimized!!!!!
 			findAdjacents(N_ptr);
-			//N_ptr->print_Adjacents();
 		} //(can't be done in constructor because not all nodes have been registered yet)
 	}
 }

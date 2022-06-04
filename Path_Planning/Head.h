@@ -24,7 +24,7 @@ enum domin_res {
 	fst_dominates = 0, snd_dominates = 1, areEqual = 2, nonDomination = 3
 };
 
-domin_res domination(float fst, float snd) {		//vectDomination()
+domin_res domination(float fst, float snd) {
 	if (fst < snd) {						//domination = smaller one
 		return fst_dominates;
 	}
@@ -38,6 +38,24 @@ domin_res domination(float fst, float snd) {		//vectDomination()
 		return nonDomination;
 	}
 }
+
+
+domin_res complete_domination(float fst, float snd) {	//until costs are floats, is the same as domination
+	if (fst < snd) {						//domination = smaller one
+		return fst_dominates;
+	}
+	else if (fst == snd) {
+		return areEqual;
+	}
+	else if (fst > snd) {
+		return snd_dominates;
+	}
+	else {	//useless until fst and snd are float
+		return nonDomination;
+	}
+}
+
+
 
 /*
 domin_res vectDomination(std::vector<float> fst, std::vector<float> snd) {		// vectorial g and rhs [scalabile!]
