@@ -357,14 +357,18 @@ void updateMap() {
 	// initializations
 	bool nodes_changes = false, vehicle_moved = false;
 	Wptr_toNode N_inOld = nullptr;
+	std::vector<Wptr_toNode> newNodes;	newNodes.clear();
 
 	ReadMap();	// to add -> wait for any weight cost to change
 
 	for (auto d_ptr : newMap) {
-		N_inOld = findNodeptr((*d_ptr).X, (*d_ptr).Y);
+		N_inOld = findNodeptr(d_ptr->X, d_ptr->Y);
 		if (N_inOld == nullptr) {	//Node not found
 			std::cout << " => coordinates [" << d_ptr->X << "," << d_ptr->Y << "] were not in the old map, so a new node will be created.\n"; //debug		
 			NodesVect.push_back(std::make_shared<Node>(d_ptr->Name, d_ptr->X, d_ptr->Y, d_ptr->cost, d_ptr->nodeType));	//define new Node
+
+			newNodes.push_back(findNodeptr(d_ptr->X, d_ptr->Y));	// used later to update adjacents (should always find it, it was just created!)
+
 			nodes_changes = true;
 		}
 		else {						//Node found
@@ -403,8 +407,13 @@ void updateMap() {
 			computeMOPaths();	/*13*/
 		}
 
-		for (auto N_ptr : NodesVect) { // fill adjacents to each node -> for sure NOT OPTIMIZED (2) !!!!!
-			findAdjacents(N_ptr);
+		for (auto newN : newNodes) { // fill adjacents to each node
+			findAdjacents(newN);
+			if (count > 1) {	//count=0+1 is the first reading
+				for (auto ad_newN : newN->AdjacentsVect)
+					addAdj(ad_newN, newN->X, newN->Y);	//adding the new node as adjacents to his adjacents
+			}
 		} //(can't be done in constructor because not all nodes have been registered yet)
+		// the nodes are only added, if a node becomes unavaliable it remains in the list but with cost = inf
 	}
 }
