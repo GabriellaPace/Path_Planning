@@ -243,10 +243,6 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 	expandingStates.push_back(ptrToStart);
 
 	while (!expandingStates.empty()) {
-		//re-initializations
-		//cumulativeCs.clear();
-		//cumulativeCs = NULL;
-
 		//Java: poll() returns the element at the head of the Queue [returns null if the Queue is empty]
 		Ns = expandingStates.front();
 		expandingStates.pop_front();
@@ -260,9 +256,7 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 			}
 			else {										// if Ns does have predefined parents
 				/*10*/ // cumulativeC = sum( c(Ns,s1), Ns.parents().values() ) 
-				//cost_tmp = compute_cost(Ns, s1);
 				for (auto&[s1_ptr, s1_cost] : Ns->parents) {
-					//cumulativeCs.push_back(cost_tmp + s1_cost);
 					cumulativeCs += s1_cost;	//"aggregated" cost??
 				}
 				uint8_t a = compute_cost(Ns, s1);
@@ -270,7 +264,6 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 
 				/*11-12*/
 				if (s1->parents.empty()) {
-					//s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeC);
 					s1->parents[Ns] = cumulativeCs;		//s1.parents().put(s, cumulativeC);
 				}
 				else {
@@ -281,49 +274,34 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 						}
 						else if (domination(s2_cost, cumulativeCs) == snd_dominates) {
 							s1->parents.erase(s2_ptr);
-							//s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeC);
 							s1->parents[Ns] = cumulativeCs;		//s1.parents().put(s, cumulativeC);
 						}
-						//else {	// = non-domination: never happens until the costs are floats
-						//	//for (auto cC : cumulativeCs) {	// = for each type of cost (?)
-						//		//for (auto eC : s1->parents[s2_ptr]) {
-						//			uint8_t eC = s1->parents[s2_ptr];
-						//			uint8_t cC = cumulativeCs;
-						//			if (domination(cC, eC) == areEqual || domination(cC, eC) == snd_dominates) {
-						//				//std::remove(cumulativeCs.begin(), cumulativeCs.end(), cC);
-						//				cumulativeCs = NULL;	//??????
-						//				break;
-						//			}
-						//			else if (domination(cC, eC) == fst_dominates) {
-						//				s1->parents.erase(s2_ptr);	//s1.parents(s2_ptr).erase(eC);
-						//				break;
-						//			}
-						//		//}		
-						//		if (s1->parents[s2_ptr] == NULL) { //how can this happen??????????
-						//			s1->parents.erase(s2_ptr);	//s1.parents().erase(s2_ptr);
-						//		}
-						//	//}
-						//	//if (! cumulativeCs.empty()) {
-						//	if (cumulativeCs != NULL) {
-						//		//s1->parents[Ns] = cumulativeCs[0];	//s1.parents().put(s, cumulativeCs);
-						//		s1->parents[Ns] = cumulativeCs;		//s1.parents().put(s, cumulativeCs);
-						//	}
-						//}
+						else {	// = non-domination: never happens until the costs are floats
+							//for (auto cC : cumulativeCs) {	// = for each type of cost (?)
+								//for (auto eC : s1->parents[s2_ptr]) {
+									uint8_t eC = s1->parents[s2_ptr];
+									uint8_t cC = cumulativeCs;
+									if (domination(cC, eC) == areEqual || domination(cC, eC) == snd_dominates) {
+										//std::remove(cumulativeCs.begin(), cumulativeCs.end(), cC);
+										cumulativeCs = NULL;	//??????
+										break;
+									}
+									else if (domination(cC, eC) == fst_dominates) {
+										s1->parents.erase(s2_ptr);	//s1.parents(s2_ptr).erase(eC);
+										break;
+									}
+								//}		
+								if (s1->parents[s2_ptr] == NULL) { //how can this happen??????????
+									s1->parents.erase(s2_ptr);	//s1.parents().erase(s2_ptr);
+								}
+							//}
+							
+							if (cumulativeCs != NULL) {		//if (! cumulativeCs.empty()) {
+								s1->parents[Ns] = cumulativeCs;		//s1.parents().put(s, cumulativeCs);
+							}
+						}
 					}
 				}
-
-				//if (count == 3) {
-				//	std::cout << "--------- LOOP PARENTS ---------\n";
-				//	std::cout << "Parent of node (Ns) = "; Ns->print_Coord();		std::cout << " :\n";
-				//	for (auto&[par_ptr, par_cost] : Ns->parents) {
-				//		par_ptr->print_Coord();   std::cout << "  :  " << +par_cost << std::endl;
-				//	}
-				//	std::cout << "Parent of node (s1) = "; s1->print_Coord();		std::cout << " :\n";
-				//	for (auto&[par_ptr, par_cost] : s1->parents) {
-				//		par_ptr->print_Coord();	std::cout << "  :  " << +par_cost << std::endl;
-				//	}
-				//	std::cout << std::endl;
-				//}
 
 			}
 
@@ -402,34 +380,11 @@ void updateMap() {
 				N_inOld->cost = d_ptr->cost;	// = "Update cost" /*11*/
 				N_inOld->nodeType = d_ptr->nodeType;
 				update_rhs(N_inOld);			// = "Update Vertex" /*12*/
+				N_inOld->parents.clear();					//NOT OPTIMIZED (1)
 				updateAdjacents(N_inOld);		//should I update all the adjacent nodes' rhs??  <======================================================
-
-
-				//added by me: (is there a better way to automatically update parents??)  <=============================================================
-				//for (auto adj : N_inOld->AdjacentsVect) {
-				//	if ( adj->parents.find(N_inOld) != adj->parents.end() ) {
-
-				//		//if (domination(tmp_s1_cost, cumulativeCs) == fst_dominates) {	// tmp_s1_cost < cumulativeCs
-				//		if (domination(adj->parents[N_inOld], cumulativeCs_t) == fst_dominates) {
-
-				//			std::cout << "adj->parents[N_inOld] = " << +(adj->parents[N_inOld]) << std::endl;
-				//			std::cout << "cumulativeCs_t = " << +(cumulativeCs_t) << std::endl << std::endl;
-
-				//			uint8_t cumulativeCs_t = NULL;
-				//			for (auto&[s1_ptr, s1_cost] : N_inOld->parents) {
-				//				cumulativeCs_t += s1_cost;	//"aggregated" cost??
-				//			}
-				//			cumulativeCs_t += compute_cost(N_inOld, adj);
-				//			adj->parents[N_inOld] = cumulativeCs_t;
-				//		}
-				//		else {
-				//			adj->parents.erase(N_inOld);
-				//		}
-				//		
-				//	}
-				//}
-				// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ //
-
+				for (auto adj : N_inOld->AdjacentsVect) {	//NOT OPTIMIZED (1)
+					adj->parents.clear();					//NOT OPTIMIZED (1)
+				}
 			}
 			//else: Node found but there were no modifications to it
 		}
@@ -455,9 +410,8 @@ void updateMap() {
 			computeMOPaths();	/*13*/   // <=============== why??? ===================
 		}
 
-		for (auto N_ptr : NodesVect) { // fill adjacents to each node -> for sure not optimized!!!!!
+		for (auto N_ptr : NodesVect) { // fill adjacents to each node -> for sure NOT OPTIMIZED (2)!!!!! <=============== use coord ========
 			findAdjacents(N_ptr);
-			N_ptr->parents.clear();
 		} //(can't be done in constructor because not all nodes have been registered yet)
 	}
 }

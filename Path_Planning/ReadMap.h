@@ -15,7 +15,7 @@ int count = 0;	// to change map in different iterations
 void ReadMap() {
 	newMap.clear();
 
-	if (count == 0) {			//ok
+	if (count == 0) {
 		newMap.push_back(std::make_shared<dummyNode>('0', 0, 0, 10, start));
 		newMap.push_back(std::make_shared<dummyNode>('1', 1, 0, 20, any));
 		newMap.push_back(std::make_shared<dummyNode>('2', 2, 0, 10, any));
@@ -24,7 +24,7 @@ void ReadMap() {
 		newMap.push_back(std::make_shared<dummyNode>('6', 2, 1, 10, goal));
 		++count;
 	}
-	else if (count == 1) {		//ok
+	else if (count == 1) {
 		newMap.push_back(std::make_shared<dummyNode>('5', 1, 1, 60, any));
 		
 		//newMap.push_back(std::make_shared<dummyNode>('1', 1, 0, 5, any));
@@ -45,7 +45,7 @@ void ReadMap() {
 	//	newMap.push_back(std::make_shared<dummyNode>('6', 3, 0, 10, goal));
 	//	++count;
 	//}
-	else if (count == 3) {		//ok
+	else if (count == 3) {
 		newMap.push_back(std::make_shared<dummyNode>('4', 1, 1, 10, any));
 		newMap.push_back(std::make_shared<dummyNode>('5', 2, 1, 10, start)); //and goal  ->  ptrToStart == ptrToGoal
 
