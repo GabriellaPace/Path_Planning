@@ -41,10 +41,9 @@ void print_intVect(std::vector<uint8_t> vect) {
 }
 
 void print_parents(Wptr_toNode N) {
-	std::cout << "Parents of node ";	N->print_Coord();		std::cout << " :\n";
-	for (parents_map::iterator it = N->parents.begin(); it != N->parents.end(); ++it) {
-		std::cout << "Key (coord): ";	(it->first)->print_Coord();
-		std::cout << "  -  Value: " << +(it->second) << std::endl;		//+ needed to print unsigned_int8
+	std::cout << "Parent of node = "; N->print_Coord();		std::cout << " :\n";
+	for (auto&[par_ptr, par_cost] : N->parents) {
+		par_ptr->print_Coord();   std::cout << "  :  " << +par_cost << std::endl;
 	}
 	std::cout << std::endl;
 }
@@ -57,12 +56,12 @@ void print_solution(std::vector<Wptr_toNode> solution_vect) {
 	}
 	std::cout << std::endl;
 
-	/**/
+	/*
 	for (int i = 0; i < 3; ++i)		NodesVect[i]->print_g_rhs();
 	std::cout << std::endl;
-	for (int i = 3; i < 6; ++i)		NodesVect[i]->print_g_rhs();
+	for (int i = 3; i < NodesVect.size(); ++i)		NodesVect[i]->print_g_rhs();
 	std::cout << std::endl;
-	/**/
+	*/
 }
 ///////////////////////////////////////// Functions /////////////////////////////////////////
 
@@ -205,13 +204,11 @@ void computeMOPaths() {  //function COMPUTE_MO_PATHS()
 		if (deqN_wOldKey < *deqN_ptr) {					 //put it back in queue with new key  ->  when does this happen???
 			queue.insert(*deqN_ptr);
 		}
-		//else if ((*deqN_ptr).rhs < (*deqN_ptr).g) {
-		else if ( domination(deqN_ptr->rhs, deqN_ptr->g) == fst_dominates ) {		 // OVERCONSISTENT
+		else if ( domination(deqN_ptr->rhs, deqN_ptr->g) == fst_dominates ) {		 // OVERCONSISTENT (rhs<g)
 			(*deqN_ptr).g = (*deqN_ptr).rhs;
 			updateAdjacents(deqN_ptr);
 		}
-		//else if ((*deqN_ptr).rhs > (*deqN_ptr).g) {
-		else if ( domination(deqN_ptr->rhs, deqN_ptr->g) == snd_dominates ) {		// UNDERCONSISTENT
+		else if ( domination(deqN_ptr->rhs, deqN_ptr->g) == snd_dominates ) {		// UNDERCONSISTENT (rhs>g)
 			(*deqN_ptr).g = std::numeric_limits<float>::infinity();
 			update_rhs(deqN_ptr);
 			updateAdjacents(deqN_ptr);
@@ -236,7 +233,6 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 	std::vector<Wptr_toNode> solutionPaths;
 	//std::vector<uint8_t> cumulativeCs;
 	uint8_t cumulativeCs;
-	//uint8_t cost_tmp;
 	Wptr_toNode Ns;
 
 /*-- FIRST phase (from start to goal) -----------------------------------------------------------*/
@@ -282,8 +278,7 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 									uint8_t eC = s1->parents[s2_ptr];
 									uint8_t cC = cumulativeCs;
 									if (domination(cC, eC) == areEqual || domination(cC, eC) == snd_dominates) {
-										//std::remove(cumulativeCs.begin(), cumulativeCs.end(), cC);
-										cumulativeCs = NULL;	//??????
+										cumulativeCs = NULL;	//??????   //std::remove(cumulativeCs.begin(), cumulativeCs.end(), cC);
 										break;
 									}
 									else if (domination(cC, eC) == fst_dominates) {
@@ -314,16 +309,12 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 		
 	}
 
-	if (count == 3) {
-		std::cout << "--------- ALL PARENTS ---------\n";
-		for (auto N : NodesVect) {
-			std::cout << "Parent of node = "; N->print_Coord();		std::cout << " :\n";
-			for (auto&[par_ptr, par_cost] : N->parents) {
-				par_ptr->print_Coord();   std::cout << "  :  " << +par_cost << std::endl;
-			}
-			std::cout << std::endl;
-		}
-	}
+	////if (count == 3) {	//DEBUG
+	//	std::cout << "--------- ALL PARENTS ---------\n";
+	//	for (auto N : NodesVect) {
+	//		print_parents(N);
+	//	}
+	////}
 
 
 /*-- SECOND phase (from goal to start) ----------------------------------------------------------*/
@@ -350,6 +341,8 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 			}
 		}
 		solutionPaths.push_back(parent_toPush);
+		// ^ (*)
+
 		N = parent_toPush;	//for next iteration
 	}
 	std::reverse(solutionPaths.begin(), solutionPaths.end());	//to have it from start to goal
@@ -381,7 +374,7 @@ void updateMap() {
 				N_inOld->nodeType = d_ptr->nodeType;
 				update_rhs(N_inOld);			// = "Update Vertex" /*12*/
 				N_inOld->parents.clear();					//NOT OPTIMIZED (1)
-				updateAdjacents(N_inOld);		//should I update all the adjacent nodes' rhs??  <======================================================
+				updateAdjacents(N_inOld);
 				for (auto adj : N_inOld->AdjacentsVect) {	//NOT OPTIMIZED (1)
 					adj->parents.clear();					//NOT OPTIMIZED (1)
 				}
@@ -407,10 +400,10 @@ void updateMap() {
 				k_m += heuristic(ptrToGoal);
 				std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
 			}
-			computeMOPaths();	/*13*/   // <=============== why??? ===================
+			computeMOPaths();	/*13*/
 		}
 
-		for (auto N_ptr : NodesVect) { // fill adjacents to each node -> for sure NOT OPTIMIZED (2)!!!!! <=============== use coord ========
+		for (auto N_ptr : NodesVect) { // fill adjacents to each node -> for sure NOT OPTIMIZED (2) !!!!!
 			findAdjacents(N_ptr);
 		} //(can't be done in constructor because not all nodes have been registered yet)
 	}

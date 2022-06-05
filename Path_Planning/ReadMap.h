@@ -39,15 +39,15 @@ void ReadMap() {
 		newMap.push_back(std::make_shared<dummyNode>('7', 3, 0, 10, any));
 		++count;
 	}
-	//else if (count == 3) {												// it doesn't support goal change!
-	//	newMap.push_back(std::make_shared<dummyNode>('1', 1, 0, 10, any));
-	//	newMap.push_back(std::make_shared<dummyNode>('5', 2, 1, 10, start));
-	//	newMap.push_back(std::make_shared<dummyNode>('6', 3, 0, 10, goal));
-	//	++count;
-	//}
-	else if (count == 3) {
-		newMap.push_back(std::make_shared<dummyNode>('4', 1, 1, 10, any));
-		newMap.push_back(std::make_shared<dummyNode>('5', 2, 1, 10, start)); //and goal  ->  ptrToStart == ptrToGoal
+	else if (count == 3) {	//goal change
+		newMap.push_back(std::make_shared<dummyNode>('6', 2, 1, 10, any));
+		newMap.push_back(std::make_shared<dummyNode>('7', 3, 0, 10, goal));
+		++count;
+	}
+	else if (count == 4) {
+		newMap.push_back(std::make_shared<dummyNode>('5', 1, 1, 60, any));
+		newMap.push_back(std::make_shared<dummyNode>('6', 2, 1, 10, start)); //and goal  ->  ptrToStart == ptrToGoal  ->  ARRIVED
+		newMap.push_back(std::make_shared<dummyNode>('6', 2, 1, 10, goal));	 //and goal  ->  ptrToStart == ptrToGoal  ->  ARRIVED
 
 		++count;
 	}

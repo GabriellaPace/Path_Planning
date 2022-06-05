@@ -44,6 +44,5 @@ int main() {
 // end of function PLAN()
 
 	// DELETE ALL objects -> shared_ptr are automatically deleted when out of scope (??) -> so no need to do it manually 
-	std::cout << " => END.\n\n";
 	//std::cin.get();
 }

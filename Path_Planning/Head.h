@@ -94,8 +94,6 @@ domin_res vectDomination(std::vector<float> fst, std::vector<float> snd) {		// v
 
 
 
-
-
 //multi-dom
 /*
 domin_res multi_dom(float c, std::vector<uint8_t> vectC) {	//compare a cost and a vector of costs
