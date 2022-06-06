@@ -407,7 +407,7 @@ void updateMap() {
 			computeMOPaths();	/*13*/
 		}
 
-		for (auto newN : newNodes) { // fill adjacents to each node
+		for (auto newN : newNodes) {	//fill adjacents to each node
 			findAdjacents(newN);
 			if (count > 1) {	//count=0+1 is the first reading
 				for (auto ad_newN : newN->AdjacentsVect)
