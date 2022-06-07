@@ -1,7 +1,6 @@
 #pragma once
 #include "ClassNode.h"
 
-//using Sptr_toNode = std::shared_ptr<Node>;
 using Wptr_toNode = std::shared_ptr<Node>;
 
 std::vector<std::shared_ptr<Node>>		NodesVect;	// vector of shared pointers to Nodes (declaration and definition)
