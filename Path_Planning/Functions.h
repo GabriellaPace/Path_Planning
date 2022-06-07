@@ -204,10 +204,12 @@ void computeMOPaths() {  //function COMPUTE_MO_PATHS()
 		if (deqN_wOldKey < *deqN_ptr) {					 //put it back in queue with new key  ->  when does this happen???
 			queue.insert(*deqN_ptr);
 		}
+		//else if (domination(deqN_ptr->rhs, deqN_ptr->g) == fst_completely_dominates) {
 		else if ( domination(deqN_ptr->rhs, deqN_ptr->g) == fst_dominates ) {		 // OVERCONSISTENT (rhs<g)
 			(*deqN_ptr).g = (*deqN_ptr).rhs;
 			updateAdjacents(deqN_ptr);
 		}
+		//else if (domination(deqN_ptr->rhs, deqN_ptr->g) == snd_completely_dominates) {
 		else if ( domination(deqN_ptr->rhs, deqN_ptr->g) == snd_dominates ) {		// UNDERCONSISTENT (rhs>g)
 			(*deqN_ptr).g = std::numeric_limits<float>::infinity();
 			update_rhs(deqN_ptr);
@@ -264,10 +266,11 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 				}
 				else {
 					for (auto&[s2_ptr, s2_cost] : s1->parents) {		//for (auto s'' : s'.parents() ) {  
+						//if (domination(s2_cost, cumulativeCs) == areEqual || domination(s2_cost, cumulativeCs) == fst_completely_dominates) {
 						if (domination(s2_cost, cumulativeCs) == areEqual || domination(s2_cost, cumulativeCs) == fst_dominates) {
-
 							break;
 						}
+						//else if (domination(s2_cost, cumulativeCs) == snd_completely_dominates) {
 						else if (domination(s2_cost, cumulativeCs) == snd_dominates) {
 							s1->parents.erase(s2_ptr);
 							s1->parents[Ns] = cumulativeCs;		//s1.parents().put(s, cumulativeC);

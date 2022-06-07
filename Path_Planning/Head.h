@@ -8,21 +8,18 @@
 #include <vector>
 #include <string> //maybe only for debug ?
 #include "robin_hood.h" //faster than <unordered_map>
-//#include <advance> //for list.at()
-//#include <next>
 
 //#define DEBUG  //#ifdef DEBUG   #endif
 /* all_of  -  none_of  -  any_of  -  find_if */
 
-
-float nonDom(float g, float rhs) {		// nonDominated (=dominant) = min			
-	return std::min(g, rhs);		// still considering single g and rhs	
-}
-
-
 enum domin_res {
-	fst_dominates = 0, snd_dominates = 1, areEqual = 2, nonDomination = 3
-};
+	//fst_completely_dominates = 0, 
+	fst_dominates = 1, 
+	//snd_completely_dominates = 2,
+	snd_dominates = 3, 
+	areEqual = 4, nonDomination = 5
+};	//I could swap the arguments in the functions and avoid "snd_dominates", but this is more readable -> is it a problem?
+
 
 domin_res domination(float fst, float snd) {
 	if (fst < snd) {						//domination = smaller one
@@ -39,33 +36,15 @@ domin_res domination(float fst, float snd) {
 	}
 }
 
-
-domin_res complete_domination(float fst, float snd) {	//until costs are floats, is the same as domination
-	if (fst < snd) {						//domination = smaller one
-		return fst_dominates;
-	}
-	else if (fst == snd) {
-		return areEqual;
-	}
-	else if (fst > snd) {
-		return snd_dominates;
-	}
-	else {	//useless until fst and snd are float
-		return nonDomination;
-	}
-}
-
-
-
+// vectorial version:
 /*
-domin_res vectDomination(std::vector<float> fst, std::vector<float> snd) {		// vectorial g and rhs [scalabile!]
+domin_res domination(std::vector<float> fst, std::vector<float> snd) {		// vectorial g and rhs [scalabile!]
 	//fst and snd should have same size by definition (usually fst=g, snd=rhs)
 	int count_fst = 0;	//dominations of First parameter
 	int count_snd = 0;	//dominations of Second parameter
 	int count_eq = 0;	//equalities
-
-	// domination = is min
-	for (int i = 0; i < fst.size(); ++i) {
+	
+	for (int i = 0; i < fst.size(); ++i) {			// domination = is min
 		if (fst[i] < snd[i]) {
 			++count_fst;
 		}
@@ -77,8 +56,14 @@ domin_res vectDomination(std::vector<float> fst, std::vector<float> snd) {		// v
 		}
 	}
 
-	if ( (count_fst + count_eq) == fst.size()) {		// <=
+	if (count_fst  == fst.size()) {						// <
+		return fst_completely_dominates;
+	}
+	else if ((count_fst + count_eq) == fst.size()) {	// <=
 		return fst_dominates;
+	}
+	else if (count_snd == fst.size()) {					// >
+		return snd_completely_dominates;
 	}
 	else if ((count_snd + count_eq) == fst.size()) {	// >=
 		return snd_dominates;
@@ -93,21 +78,17 @@ domin_res vectDomination(std::vector<float> fst, std::vector<float> snd) {		// v
 */
 
 
+float nonDom(float g, float rhs) {		// nonDominated (=dominant) = min			
+	return std::min(g, rhs);		// still considering single g and rhs	
+}
 
-//multi-dom
+// vectorial version:
 /*
-domin_res multi_dom(float c, std::vector<uint8_t> vectC) {	//compare a cost and a vector of costs
-	if (std::all_of(vectC.begin(), vectC.end(), [&c](const uint8_t& v) {return (domination(c, v) == fst_dominates); } )) {		// < (not <=)  -> ok?
-		return fst_dominates;	//fst_completely_cominates
-	}
-	else if (std::all_of(vectC.begin(), vectC.end(), [&c](const uint8_t& v) {return (domination(c, v) == areEqual); })) {		// ==
-		return areEqual;
-	}
-	else if (std::all_of(vectC.begin(), vectC.end(), [&c](const uint8_t& v) {return (domination(c, v) == snd_dominates); })) {	// > (not >=)  -> ok?
-		return snd_dominates;	//snd_completely_cominates
-	}
-	else {
-		return nonDomination;
-	}
-}	// ^ or is it better with counters? 
+std::vector<float> nonDom(std::vector<float> g, std::vector<float> rhs) {		// nonDominated (=dominant) = min
+	if (domination(g, rhs) != snd_completely_dominates && domination(g, rhs) != snd_completely_dominates)	// g is not dominated
+		return g;
+	else
+		return rhs;
+	// if areEqual or nonDomination, return g (ok??) -> not specified in paper
+}
 */

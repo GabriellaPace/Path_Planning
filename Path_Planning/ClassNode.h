@@ -12,11 +12,10 @@ class Node {		// Node = state in Koeing
 	
 public:
 	char Name; //debug
-	int X;
-	int Y;
+	int X, Y;
 	uint8_t cost;   //read from height map (from which we will derive edge costs)
-	float g;		//cost function
-	float rhs;		//one step lookahead value of g
+	float g, rhs;	//g = cost function,	rhs = one step lookahead value of g
+	//std::vector<float> g, rhs;
 	NodeTypes nodeType;
 
 	std::pair<float, float> key;
@@ -102,12 +101,10 @@ public:
 
 
 
-
 class dummyNode {
 public:
 	char Name; //debug
-	int X;
-	int Y;
+	int X, Y;
 	uint8_t cost;
 	NodeTypes nodeType;
 

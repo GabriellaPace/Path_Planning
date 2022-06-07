@@ -1,13 +1,12 @@
 #pragma once
 #include "ClassNode.h"
 
-using Sptr_toNode = std::shared_ptr<Node>;
+//using Sptr_toNode = std::shared_ptr<Node>;
 using Wptr_toNode = std::shared_ptr<Node>;
 
-std::vector<std::shared_ptr<Node>> NodesVect;	// vector of shared pointers to Nodes (declaration and definition)
-std::vector<std::shared_ptr<dummyNode>> newMap;	// vector of shared pointers to dummyNodes
-Wptr_toNode  ptrToStart = nullptr;
-Wptr_toNode  ptrToGoal = nullptr;
+std::vector<std::shared_ptr<Node>>		NodesVect;	// vector of shared pointers to Nodes (declaration and definition)
+std::vector<std::shared_ptr<dummyNode>> newMap;		// vector of shared pointers to dummyNodes
+Wptr_toNode  ptrToStart = nullptr,  ptrToGoal = nullptr;
 float k_m = 0;
 int count = 0;	// to change map in different iterations
 
