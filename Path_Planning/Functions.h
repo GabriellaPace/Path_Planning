@@ -49,7 +49,7 @@ void print_parents(Wptr_toNode N) {
 }
 
 void print_solution(std::vector<Wptr_toNode> solution_vect) {
-	std::cout << "SOLUTION PATH for map {" << count-1 << "} optimized for g[1]:\n";
+	std::cout << "SOLUTION PATH for map {" << map_count-1 << "} optimized for g[1]:\n";
 	for (auto ptr : solution_vect){
 		ptr->print_Coord();
 		std::cout << std::endl;
@@ -312,7 +312,7 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 		
 	}
 
-	////if (count == 3) {	//DEBUG
+	////if (map_count == 3) {	//DEBUG
 	//	std::cout << "--------- ALL PARENTS ---------\n";
 	//	for (auto N : NodesVect) {
 	//		print_parents(N);
@@ -402,7 +402,7 @@ void updateMap() {
 
 	// once we finished updating the map:
 	if (nodes_changes) {
-		if (count > 1) {	//count=0+1 is the first reading
+		if (map_count > 1) {	//map_count=0+1 is the first reading
 			if (vehicle_moved) {	//start node has changed	
 				k_m += heuristic(ptrToGoal);
 				std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
@@ -412,7 +412,7 @@ void updateMap() {
 
 		for (auto newN : newNodes) {	//fill adjacents to each node
 			findAdjacents(newN);
-			if (count > 1) {	//count=0+1 is the first reading
+			if (map_count > 1) {	//map_count=0+1 is the first reading
 				for (auto ad_newN : newN->AdjacentsVect)
 					addAdj(ad_newN, newN->X, newN->Y);	//adding the new node as adjacents to his adjacents
 			}

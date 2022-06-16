@@ -19,12 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Image.cpp" />
     <ClCompile Include="MODLite.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClassNode.h" />
     <ClInclude Include="Functions.h" />
     <ClInclude Include="Head.h" />
+    <ClInclude Include="Image.h" />
     <ClInclude Include="ReadMap.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

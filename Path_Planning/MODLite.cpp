@@ -29,7 +29,7 @@ int main() {
 	while (ptrToStart != ptrToGoal) {
 		solutionPaths = generateMOPaths();
 		if (solutionPaths.empty()) {
-			std::cout << " => There are no avaliable paths for map {" << count-1 << "}, waiting for any edge cost to change.\n\n";
+			std::cout << " => There are no avaliable paths for map {" << map_count-1 << "}, waiting for any edge cost to change.\n\n";
 		}
 		else {
 			print_solution(solutionPaths);
