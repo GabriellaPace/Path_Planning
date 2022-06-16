@@ -8,10 +8,10 @@ enum NodeTypes {
 
 
 class Node {		// Node = state in Koeing
-	using Wptr_toNode = std::shared_ptr<Node>;
+	using Sptr_toNode = std::shared_ptr<Node>;
 	
 public:
-	char Name; //debug
+	//char Name; //debug
 	int X, Y;
 	uint8_t cost;   //read from height map (from which we will derive edge costs)
 	float g, rhs;	//g = cost function,	rhs = one step lookahead value of g
@@ -20,15 +20,15 @@ public:
 
 	std::pair<float, float> key;
 
-	std::vector<Wptr_toNode> AdjacentsVect;	//all nodes adjacent to current one (const??)
-	robin_hood::unordered_map < Wptr_toNode, uint8_t > parents;    //key: ptr to node, value: cumulative cost
-	//robin_hood::unordered_map < Wptr_toNode, std::vector<uint8_t> > parents;    //key: ptr to node, value: cumulative cost(s)
+	std::vector<Sptr_toNode> AdjacentsVect;	//all nodes adjacent to current one (const??)
+	robin_hood::unordered_map < Sptr_toNode, uint8_t > parents;    //key: ptr to node, value: cumulative cost
+	//robin_hood::unordered_map < Sptr_toNode, std::vector<uint8_t> > parents;    //key: ptr to node, value: cumulative cost(s)
 
 ////////////////////////////////////   Constructors   /////////////////////////////////
 	Node() {}		// for pointers etc.
 
-	Node(char name, int x, int y, uint8_t ec, NodeTypes flag)  // for actual nodes
-		: Name(name), X(x), Y(y), cost(ec), nodeType(flag) {
+	Node(int x, int y, uint8_t ec, NodeTypes flag)  // for actual nodes
+		: X(x), Y(y), cost(ec), nodeType(flag) {
 
 		g = std::numeric_limits<float>::infinity();
 
@@ -103,7 +103,7 @@ public:
 
 class dummyNode {
 public:
-	char Name; //debug
+	//char Name; //debug
 	int X, Y;
 	uint8_t cost;
 	NodeTypes nodeType;
@@ -111,6 +111,6 @@ public:
 /////////////////////////   Constructors   //////////////////////////
 	dummyNode() {}		// for pointers etc.
 
-	dummyNode(char name, int x, int y, uint8_t ec, NodeTypes flag) // for actual nodes
-		: Name(name), X(x), Y(y), cost(ec), nodeType(flag) {}
+	dummyNode(int x, int y, uint8_t ec, NodeTypes flag) // for actual nodes
+		: X(x), Y(y), cost(ec), nodeType(flag) {}
 };

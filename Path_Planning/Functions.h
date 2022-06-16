@@ -4,11 +4,13 @@
 
 using set = std::set<Node, std::less<Node>, std::pmr::polymorphic_allocator<Node> >;	//by definition doesn't allow duplicates
 	//std::pmr::polymorphic_allocator = allows objects to behave as if they used different allocator types despite the identical static allocator type
-using Deq = std::deque<Wptr_toNode>;	//for expanding_states (unordered queue)
-using parents_map = robin_hood::unordered_map < Wptr_toNode, uint8_t >;
-
+using Deq = std::deque<Sptr_toNode>;	//for expanding_states (unordered queue)
+using parents_map = robin_hood::unordered_map < Sptr_toNode, uint8_t >;
 
 set queue;	//filled with Nodes, NOT ptr_to_Nodes !!
+
+Sptr_toNode  ptrToStart = nullptr, ptrToGoal = nullptr;
+float k_m = 0;
 
 
 ////////////////////////////////////// Debug functions //////////////////////////////////////
@@ -40,7 +42,7 @@ void print_intVect(std::vector<uint8_t> vect) {
 	std::cout << std::endl;
 }
 
-void print_parents(Wptr_toNode N) {
+void print_parents(Sptr_toNode N) {
 	std::cout << "Parent of node = "; N->print_Coord();		std::cout << " :\n";
 	for (auto&[par_ptr, par_cost] : N->parents) {
 		par_ptr->print_Coord();   std::cout << "  :  " << +par_cost << std::endl;
@@ -48,7 +50,7 @@ void print_parents(Wptr_toNode N) {
 	std::cout << std::endl;
 }
 
-void print_solution(std::vector<Wptr_toNode> solution_vect) {
+void print_solution(std::vector<Sptr_toNode> solution_vect) {
 	std::cout << "SOLUTION PATH for map {" << map_count-1 << "} optimized for g[1]:\n";
 	for (auto ptr : solution_vect){
 		ptr->print_Coord();
@@ -65,12 +67,12 @@ void print_solution(std::vector<Wptr_toNode> solution_vect) {
 }
 ///////////////////////////////////////// Functions /////////////////////////////////////////
 
-Wptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
+Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
 	int x = xx;
 	int y = yy;
 	int idx;
 	auto it = find_if(NodesVect.begin(), NodesVect.end(),
-			  [&x, &y](const Wptr_toNode& obj) {return ((*obj).X == x && (*obj).Y == y); });
+			  [&x, &y](const Sptr_toNode& obj) {return ((*obj).X == x && (*obj).Y == y); });
 	if (it != NodesVect.end()) {
 		idx = (int)std::distance(NodesVect.begin(), it);
 		return NodesVect[idx];
@@ -82,7 +84,7 @@ Wptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired 
 
 /*----------------------------------------------------------------------------------------*/
 
-int heuristic(Wptr_toNode N) {		// shortest aereal path (ignoring the grid)
+int heuristic(Sptr_toNode N) {		// shortest aereal path (ignoring the grid)
 	int X_start = (*ptrToStart).X;
 	int Y_start = (*ptrToStart).Y;
 
@@ -93,20 +95,20 @@ int heuristic(Wptr_toNode N) {		// shortest aereal path (ignoring the grid)
 }
 
 
-void calculateKey(Wptr_toNode N) {
+void calculateKey(Sptr_toNode N) {
 	N->key.second = nonDom(N->g, N->rhs);
 	N->key.first = N->key.second + heuristic(N) + k_m;
 }
 
 
-uint8_t compute_cost(Wptr_toNode n1, Wptr_toNode n2) {	// edge-cost derived from node-costs
+uint8_t compute_cost(Sptr_toNode n1, Sptr_toNode n2) {	// edge-cost derived from node-costs
 	return std::max(n1->cost, n2->cost);	//<- as done for Theta* Planner in Nav2
 }
 
 /*------------------------------------- Nodes updates -------------------------------------*/
 
-void addAdj(Wptr_toNode N, int oriz, int vert) {
-	auto it = find_if(NodesVect.begin(), NodesVect.end(), [&oriz, &vert](const Wptr_toNode& obj) {return ((*obj).X == oriz && (*obj).Y == vert); });
+void addAdj(Sptr_toNode N, int oriz, int vert) {
+	auto it = find_if(NodesVect.begin(), NodesVect.end(), [&oriz, &vert](const Sptr_toNode& obj) {return ((*obj).X == oriz && (*obj).Y == vert); });
 	if (it != NodesVect.end()) {
 		auto idx = std::distance(NodesVect.begin(), it);
 		N->AdjacentsVect.push_back(NodesVect[idx]);
@@ -114,7 +116,7 @@ void addAdj(Wptr_toNode N, int oriz, int vert) {
 }
 
 
-void findAdjacents(Wptr_toNode N) {
+void findAdjacents(Sptr_toNode N) {
 	int oriz, vert;
 	oriz = N->X + 0;	vert = N->Y + 1;	addAdj(N, oriz, vert);
 						vert = N->Y - 1;	addAdj(N, oriz, vert);
@@ -128,15 +130,15 @@ void findAdjacents(Wptr_toNode N) {
 
 
 struct NDS_struct {
-	std::vector<Wptr_toNode> NDS_succs;
+	std::vector<Sptr_toNode> NDS_succs;
 	float NDS_rhs;
 };
 
-struct NDS_struct nonDom_succs(Wptr_toNode N) {				// find non-dominated successors, wrt multiobjective c+g
+struct NDS_struct nonDom_succs(Sptr_toNode N) {				// find non-dominated successors, wrt multiobjective c+g
 															//nonDomSuccs = nonDom_[s' in succ(Ns)](sum(c(Ns, s’), g(s’)) 
 	NDS_struct NDS_sol;
 	bool nonDom_flag;
-	Wptr_toNode adNi, adNj;
+	Sptr_toNode adNi, adNj;
 	float cC_out, cC_in;  // still considering single g and rhs -> will become vectors //cC = cumulative cost (outer/inner loop)
 
 	for (auto adNi : N->AdjacentsVect) {		//for each element of AdjacentsVect, we'll check if it dominated every other element in the same List
@@ -160,7 +162,7 @@ struct NDS_struct nonDom_succs(Wptr_toNode N) {				// find non-dominated success
 }
 
 
-void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
+void update_rhs(Sptr_toNode N) {    //function UPDATE_VERTEX(u)
 	if (N->nodeType != goal) {
 		N->rhs = nonDom_succs(N).NDS_rhs;
 	}
@@ -176,7 +178,7 @@ void update_rhs(Wptr_toNode N) {    //function UPDATE_VERTEX(u)
 }
 
 
-void updateAdjacents(Wptr_toNode N) {
+void updateAdjacents(Sptr_toNode N) {
 	for (auto A_ptr : N->AdjacentsVect) {   //update each node adjacent to the modified one
 		update_rhs(A_ptr);
 	}
@@ -187,7 +189,7 @@ void updateAdjacents(Wptr_toNode N) {
 
 void computeMOPaths() {  //function COMPUTE_MO_PATHS()	
 	Node deqN_wOldKey;
-	Wptr_toNode deqN_ptr;
+	Sptr_toNode deqN_ptr;
 	float inf = std::numeric_limits<float>::infinity();	// can't do "using"
 
 	calculateKey(ptrToStart);
@@ -226,16 +228,16 @@ void computeMOPaths() {  //function COMPUTE_MO_PATHS()
 }
 
 
-std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()  
+std::vector<Sptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()  
 //expanding a state = observe the domination between g and rhs
 //Ns = node to expand, s1 = nondominated successor of Ns  (s1 = s’ ,  s2 = s’’)
 	// DECLARATIONS
 	Deq expandingStates;	// (de)queue of (ptr to) nodes which adjacents should be updated = to expand (FIFO)
-	std::vector<Wptr_toNode> nonDomSuccs;
-	std::vector<Wptr_toNode> solutionPaths;
+	std::vector<Sptr_toNode> nonDomSuccs;
+	std::vector<Sptr_toNode> solutionPaths;
 	//std::vector<uint8_t> cumulativeCs;
 	uint8_t cumulativeCs;
-	Wptr_toNode Ns;
+	Sptr_toNode Ns;
 
 /*-- FIRST phase (from start to goal) -----------------------------------------------------------*/
 	expandingStates.push_back(ptrToStart);
@@ -323,9 +325,9 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 /*-- SECOND phase (from goal to start) ----------------------------------------------------------*/
 		//solutionPaths = construct paths recursively traversing parents;
 	float min_g1;
-	Wptr_toNode parent_toPush = NULL;
+	Sptr_toNode parent_toPush = NULL;
 
-	Wptr_toNode N = ptrToGoal;	//might change it to Ns (to avoid useless new defintition)
+	Sptr_toNode N = ptrToGoal;	//might change it to Ns (to avoid useless new defintition)
 	solutionPaths.push_back(N);
 
 	while (N->nodeType != start) {
@@ -359,8 +361,8 @@ std::vector<Wptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 void updateMap() {
 	// initializations
 	bool nodes_changes = false, vehicle_moved = false;
-	Wptr_toNode N_inOld = nullptr;
-	std::vector<Wptr_toNode> newNodes;	newNodes.clear();
+	Sptr_toNode N_inOld = nullptr;
+	std::vector<Sptr_toNode> newNodes;	newNodes.clear();
 
 	ReadMap();	// to add -> wait for any weight cost to change
 
@@ -368,7 +370,7 @@ void updateMap() {
 		N_inOld = findNodeptr(d_ptr->X, d_ptr->Y);
 		if (N_inOld == nullptr) {	//Node not found
 			std::cout << " => coordinates [" << d_ptr->X << "," << d_ptr->Y << "] were not in the old map, so a new node will be created.\n"; //debug		
-			NodesVect.push_back(std::make_shared<Node>(d_ptr->Name, d_ptr->X, d_ptr->Y, d_ptr->cost, d_ptr->nodeType));	//define new Node
+			NodesVect.push_back(std::make_shared<Node>(d_ptr->X, d_ptr->Y, d_ptr->cost, d_ptr->nodeType));	//define new Node
 
 			newNodes.push_back(findNodeptr(d_ptr->X, d_ptr->Y));	// used later to update adjacents (should always find it, it was just created!)
 

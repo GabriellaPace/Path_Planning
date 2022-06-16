@@ -1,6 +1,4 @@
 #include "Image.h"
-#include <iostream>
-#include <fstream>
 
 Color::Color()
 	: R(0), G(0), B(0)
@@ -41,10 +39,8 @@ void Image::SetColor(const Color & color, int x, int y)
 	m_colors[y*m_width + x].B = color.B;
 }
 
-
-/*
-Parts REQUIRED in a bitmap file:
-	- File header: general information
+//Parts REQUIRED in a bitmap file:
+/*	- File header: general information
 	- Information header (DIB header): detailed information
 	- Pixel array: color data for each pixel
 	there could be more, but they are not mandatory.
@@ -53,7 +49,6 @@ Every row must occupy memory that is multiple of 4 Bytes!
 Every pixel uses 3B (1 for every color), so we might need/have a padding at the end of each row (all set to 0)
 	Bytes of padding = [4 - ( NumberOfPixelsInARow * 3 / 4 )] / 4		(the last /4 is to obtain 0 in case we have 4-0)
 */
-
 
 void Image::Read(const char * path)
 {
@@ -108,6 +103,7 @@ void Image::Read(const char * path)
 	f.close();
 	std::cout << "File read.\n";
 }
+
 
 
 void Image::Export(const char * path) const

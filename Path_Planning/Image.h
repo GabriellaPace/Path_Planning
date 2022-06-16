@@ -1,5 +1,7 @@
 #pragma once
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 struct Color {
 	float R, G, B;
@@ -20,6 +22,7 @@ public:
 	void SetColor(const Color& color, int x, int y);
 
 	void Read(const char* path);
+	void ReadMap_bmp(const char * path);
 	void Export(const char* path) const;
 
 private:
@@ -27,4 +30,3 @@ private:
 	int m_height;
 	std::vector<Color> m_colors;
 };
-

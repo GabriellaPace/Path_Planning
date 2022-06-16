@@ -1,6 +1,6 @@
 #include "Functions.h"
 
-std::vector<Wptr_toNode> solutionPaths;
+std::vector<Sptr_toNode> solutionPaths;
 
 int main() {
 	/*
