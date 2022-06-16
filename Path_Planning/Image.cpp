@@ -171,7 +171,7 @@ void Image::Export(const char * path) const
 	informationHeader[12] = 1;
 	informationHeader[13] = 0;
 	// Bits per pixel (RGB)
-	informationHeader[14] = 24;	//bc every Byte is 8 bits. Even if we are using RGB floats, we are going to convert them to 1B
+	informationHeader[14] = 8;	// we need 1B (=8bits) for every color  ->  RGB = 24b,  Greyscale=8b
 	informationHeader[15] = 0;
 	// Compression (No compression)
 	informationHeader[16] = 0;
