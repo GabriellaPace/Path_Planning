@@ -8,13 +8,23 @@ std::vector<std::shared_ptr<Node>>		NodesVect;	// vector of shared pointers to N
 std::vector<std::shared_ptr<dummyNode>> newMap;		// vector of shared pointers to dummyNodes
 
 int map_count = 0;	// to change map in different iterations
+std::string img_path = "C:/Dev/Path_Planning/Maps/";
 
-//void readBMP(const char * path) {
-//	Image img;
-//	//img.Read(path);
-//	img.ReadMap(path);
-//	//img.Export("C:/Dev/Path_Planning/Maps/0_gradient_COPY.bmp");
-//}
+
+std::shared_ptr<dummyNode> findDummyptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
+	int x = xx;
+	int y = yy;
+	int idx;
+	auto it = find_if(newMap.begin(), newMap.end(),
+		[&x, &y](const std::shared_ptr<dummyNode>& obj) {return ((*obj).X == x && (*obj).Y == y); });
+	if (it != newMap.end()) {
+		idx = (int)std::distance(newMap.begin(), it);
+		return newMap[idx];
+	}
+	else {
+		return nullptr;
+	}
+}
 
 
 //gray = 0.2126*R + 0.7152*G + 0.0722*B;
@@ -80,34 +90,16 @@ void Image::ReadMap_bmp(const char * path)
 }
 
 
-std::shared_ptr<dummyNode> findDummyptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
-	int x = xx;
-	int y = yy;
-	int idx;
-	auto it = find_if(newMap.begin(), newMap.end(),
-		[&x, &y](const std::shared_ptr<dummyNode>& obj) {return ((*obj).X == x && (*obj).Y == y); });
-	if (it != newMap.end()) {
-		idx = (int)std::distance(newMap.begin(), it);
-		return newMap[idx];
-	}
-	else {
-		return nullptr;
-	}
-}
-
-
-
 void ReadMap() {
 	newMap.clear();
 
 	if (map_count < 1) {
-		std::string path = "C:/Dev/Path_Planning/Maps/";		
 		//readBMP((path + std::to_string(map_count) + "_gradient.bmp").c_str());
 		Image img;
-		img.ReadMap_bmp((path + std::to_string(map_count) + "_gradient.bmp").c_str());
+		img.ReadMap_bmp((img_path + std::to_string(map_count) + "_gradient.bmp").c_str());
 
 		std::shared_ptr<dummyNode> dummy;
-		int x_in, y_in;
+		//int x_in, y_in;
 		//std::cout << "Insert coordinates of START node: x y\n";
 		//std::cin >> x_in; std::cin >> y_in;
 		//dummy = findDummyptr(x_in, y_in);
@@ -120,7 +112,10 @@ void ReadMap() {
 		dummy->nodeType = goal;
 
 		std::cout << "*********************************************\n => RECEIVED NEW MAP: {" << map_count << "}\n";
-		++map_count;
+		//++map_count;
+	}
+	else {
+		return;
 	}
 }
 

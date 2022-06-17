@@ -25,21 +25,22 @@ int main() {
 
 	computeMOPaths();
 
-
-	while (ptrToStart != ptrToGoal) {
+	//while (ptrToStart != ptrToGoal) {
 		solutionPaths = generateMOPaths();
 		if (solutionPaths.empty()) {
-			std::cout << " => There are no avaliable paths for map {" << map_count-1 << "}, waiting for any edge cost to change.\n\n";
+			std::cout << " => There are no avaliable paths for map {" << map_count << "}, waiting for any edge cost to change.\n\n";
 		}
 		else {
 			print_solution(solutionPaths);
+			save_solution_img(solutionPaths);
 		}
 
 		//sleep(5);
 		queue.clear();	//added by me -> maybe uselees (hopefully not wrong)
 
+		++map_count;
 		updateMap();
-	}
+	//}
 	std::cout << " => GOAL REACHED. Exiting.\n\n";
 // end of function PLAN()
 

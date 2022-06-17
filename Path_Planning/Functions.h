@@ -51,7 +51,7 @@ void print_parents(Sptr_toNode N) {
 }
 
 void print_solution(std::vector<Sptr_toNode> solution_vect) {
-	std::cout << "SOLUTION PATH for map {" << map_count-1 << "} optimized for g[1]:\n";
+	std::cout << "SOLUTION PATH for map {" << map_count << "} optimized for g[1]:\n";
 	for (auto ptr : solution_vect){
 		ptr->print_Coord();
 		std::cout << std::endl;
@@ -65,6 +65,20 @@ void print_solution(std::vector<Sptr_toNode> solution_vect) {
 	std::cout << std::endl;
 	*/
 }
+
+
+void save_solution_img(std::vector<Sptr_toNode> solution_vect) {
+	Image img;
+	img.Read((img_path + std::to_string(map_count) + "_gradient.bmp").c_str());	//just read, without creating nodes etc
+	
+	for (auto ptr : solution_vect) {
+		Color color_sol(1.0f, 0.0f, 0.0f);	//all RED
+		img.SetColor(color_sol, ptr->X, ptr->Y);
+	}
+
+	img.Export((img_path + std::to_string(map_count) + "_gradient_SOL.bmp").c_str());
+}
+
 ///////////////////////////////////////// Functions /////////////////////////////////////////
 
 Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
@@ -404,7 +418,7 @@ void updateMap() {
 
 	// once we finished updating the map:
 	if (nodes_changes) {
-		if (map_count > 1) {	//map_count=0+1 is the first reading
+		if (map_count > 0) {	//map_count=0 is the first reading
 			if (vehicle_moved) {	//start node has changed	
 				k_m += heuristic(ptrToGoal);
 				std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
@@ -414,7 +428,7 @@ void updateMap() {
 
 		for (auto newN : newNodes) {	//fill adjacents to each node
 			findAdjacents(newN);
-			if (map_count > 1) {	//map_count=0+1 is the first reading
+			if (map_count > 0) {	//map_count=0+1 is the first reading
 				for (auto ad_newN : newN->AdjacentsVect)
 					addAdj(ad_newN, newN->X, newN->Y);	//adding the new node as adjacents to his adjacents
 			}

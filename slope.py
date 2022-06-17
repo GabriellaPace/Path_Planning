@@ -16,7 +16,7 @@ gui = True
 scale = 1
 #amplitude = 1
 cmap = cm.twilight  #for gui
-width = height = 20 #1000
+width = height = 100 #1000
 out_image = np.zeros((height+2, width+2, 1), np.float32)
 
 sign = lambda a: (a>0) - (a<0)

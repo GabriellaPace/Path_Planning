@@ -83,7 +83,9 @@ void Image::Read(const char * path)
 
 	m_colors.resize(m_width * m_height);
 
-	const int paddingAmount = ((4 - (m_width * 3) % 4) % 4);	//calculating how much padding there is
+	//const int paddingAmount = ((4 - (m_width * 3) % 4) % 4);	//calculating how much padding there is
+	const int paddingAmount = ((4 - (m_width) % 4) % 4);	//calculating how much padding there is
+
 
 	for (int y = 0; y < m_height; ++y) {	//rows
 		for (int x = 0; x < m_width; ++x) {	//coloumns
@@ -105,19 +107,19 @@ void Image::Read(const char * path)
 }
 
 
-
 void Image::Export(const char * path) const
 {
 	std::ofstream f;
 	f.open(path, std::ios::out | std::ios::binary);	//writing (::out) a file in binary
 
 	if (!f.is_open()) { // = if the opening was NOT successful
-		std::cout << "ERROR: File could not be opened.\n";
+		std::cout << "ERROR: File could not be created.\n";
 		return;
 	}
 
 	unsigned char bmpPad[3] = {0,0,0};	//padding can never be more than 3
-	const int paddingAmount = ((4 - (m_width * 3) % 4) % 4);	//calculating how much padding we actually need
+	//const int paddingAmount = ((4 - (m_width * 3) % 4) % 4);	//calculating how much padding we actually need
+	const int paddingAmount = ((4 - (m_width) % 4) % 4);	//calculating how much padding we actually need
 
 	const int fileHeaderSize = 14;	//fixed
 	const int informationHeaderSize = 40;	//fixed
