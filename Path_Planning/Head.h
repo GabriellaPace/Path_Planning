@@ -9,6 +9,13 @@
 #include <string> //maybe only for debug ?
 #include "robin_hood.h" //faster than <unordered_map>
 
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+//#include <opencv2/ximgproc.hpp>
+#include <opencv2/highgui.hpp>
+
 //#define DEBUG  //#ifdef DEBUG   #endif
 /* all_of  -  none_of  -  any_of  -  find_if */
 

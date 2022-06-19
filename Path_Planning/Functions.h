@@ -5,7 +5,7 @@
 using set = std::set<Node, std::less<Node>, std::pmr::polymorphic_allocator<Node> >;	//by definition doesn't allow duplicates
 	//std::pmr::polymorphic_allocator = allows objects to behave as if they used different allocator types despite the identical static allocator type
 using Deq = std::deque<Sptr_toNode>;	//for expanding_states (unordered queue)
-using parents_map = robin_hood::unordered_map < Sptr_toNode, uint8_t >;
+using parents_map = robin_hood::unordered_map < Sptr_toNode, int >;
 
 set queue;	//filled with Nodes, NOT ptr_to_Nodes !!
 
@@ -35,7 +35,7 @@ void printAll_g_rhs() {
 	std::cout << std::endl;
 }
 
-void print_intVect(std::vector<uint8_t> vect) {
+void print_intVect(std::vector<int> vect) {
 	for (int i = 0; i < vect.size(); ++i) {
 		std::cout << +vect[i] << std::endl;		//+ needed to print unsigned_int8
 	}
@@ -68,15 +68,13 @@ void print_solution(std::vector<Sptr_toNode> solution_vect) {
 
 
 void save_solution_img(std::vector<Sptr_toNode> solution_vect) {
-	Image img;
-	img.Read((img_path + std::to_string(map_count) + "_gradient.bmp").c_str());	//just read, without creating nodes etc
+	cv::Mat img_mat = cv::imread((img_path + std::to_string(map_count) + "_gradient.bmp").c_str(), cv::IMREAD_GRAYSCALE);
 	
 	for (auto ptr : solution_vect) {
-		Color color_sol(1.0f, 0.0f, 0.0f);	//all RED
-		img.SetColor(color_sol, ptr->X, ptr->Y);
+		img_mat.at<uchar>(ptr->X, ptr->Y) = 0;
 	}
-
-	img.Export((img_path + std::to_string(map_count) + "_gradient_SOL.bmp").c_str());
+	//img_mat.at<uchar>(95, 75) = 255;
+	cv::imwrite((img_path + std::to_string(map_count) + "_gradient_SOL.bmp").c_str(), img_mat);
 }
 
 ///////////////////////////////////////// Functions /////////////////////////////////////////
@@ -115,7 +113,7 @@ void calculateKey(Sptr_toNode N) {
 }
 
 
-uint8_t compute_cost(Sptr_toNode n1, Sptr_toNode n2) {	// edge-cost derived from node-costs
+int compute_cost(Sptr_toNode n1, Sptr_toNode n2) {	// edge-cost derived from node-costs
 	return std::max(n1->cost, n2->cost);	//<- as done for Theta* Planner in Nav2
 }
 
@@ -199,6 +197,23 @@ void updateAdjacents(Sptr_toNode N) {
 }
 
 
+bool start_doesNot_dominate(const Node N) {	// like < operator of Node (dominant = min)
+	if (ptrToStart->key.first < N.key.first)
+		return false;
+	else if (ptrToStart->key.first > N.key.first)
+		return true;
+	else { // ptrToStart->key.first == N->key.first
+		if (ptrToStart->key.second < N.key.second)
+			return false;
+		else if (ptrToStart->key.second > N.key.second)
+			return false;
+		else { // k1==k1 & k2==k2
+			// to avoid premature termination in computeMOPaths() -> if Start has same key of top-node, execute! (so appears >)
+			return true;
+		}
+	}
+}
+
 /*--------------------------------------- ROUTINES ----------------------------------------*/
 
 void computeMOPaths() {  //function COMPUTE_MO_PATHS()	
@@ -208,8 +223,8 @@ void computeMOPaths() {  //function COMPUTE_MO_PATHS()
 
 	calculateKey(ptrToStart);
 
-	//while (!queue.empty()  &&  ( (*ptrToStart).key.second == inf || *ptrToStart < *(queue.begin()) ) ) {	// termination criteria = start.key dominates the top key in the queue ( < = ordering rule, based on key)
-	while (!queue.empty()  &&  !( *ptrToStart < *(queue.begin()) )) {	// termination criteria = start.key dominates the top key in the queue ( < : ordering rule, based on key)
+	while (!queue.empty() && !(*ptrToStart < *(queue.begin()))) {
+	//while ( !queue.empty()	&&	start_doesNot_dominate(*(queue.begin())) ) {	// termination criteria = start.key dominates the top key in the queue ( < : ordering rule, based on key)	
 		auto queue_top = queue.begin();
 		deqN_wOldKey = *queue_top;  //pick top Node in the queue (deqN = de-queued Node)
 		queue.erase(queue_top);		//equivalent to "queue.pop()" -> remove dequeued node from the queue
@@ -249,8 +264,8 @@ std::vector<Sptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 	Deq expandingStates;	// (de)queue of (ptr to) nodes which adjacents should be updated = to expand (FIFO)
 	std::vector<Sptr_toNode> nonDomSuccs;
 	std::vector<Sptr_toNode> solutionPaths;
-	//std::vector<uint8_t> cumulativeCs;
-	uint8_t cumulativeCs;
+	//std::vector<int> cumulativeCs;
+	int cumulativeCs;
 	Sptr_toNode Ns;
 
 /*-- FIRST phase (from start to goal) -----------------------------------------------------------*/
@@ -265,7 +280,7 @@ std::vector<Sptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 		for (auto s1 : nonDomSuccs) {
 			cumulativeCs = NULL;	//re-initialization
 
-			if (Ns->parents.empty()) {					// if Ns doesn't have any parent (only iff s=Start): for sure s' does not have any parent as well!
+			if (Ns->parents.empty()) {					// if Ns doesn't have any parent (only iff Ns=Start): for sure s' does not have any parent as well!
 				s1->parents[Ns] = compute_cost(Ns, s1);	// ^ so Ns is added as a parent of s' with corresponding cost c(s, s').
 			}
 			else {										// if Ns does have predefined parents
@@ -273,7 +288,6 @@ std::vector<Sptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 				for (auto&[s1_ptr, s1_cost] : Ns->parents) {
 					cumulativeCs += s1_cost;	//"aggregated" cost??
 				}
-				uint8_t a = compute_cost(Ns, s1);
 				cumulativeCs += compute_cost(Ns, s1);
 
 				/*11-12*/
@@ -294,8 +308,8 @@ std::vector<Sptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 						else {	// = non-domination: never happens until the costs are floats
 							//for (auto cC : cumulativeCs) {	// = for each type of cost (?)
 								//for (auto eC : s1->parents[s2_ptr]) {
-									uint8_t eC = s1->parents[s2_ptr];
-									uint8_t cC = cumulativeCs;
+									int eC = s1->parents[s2_ptr];
+									int cC = cumulativeCs;
 									if (domination(cC, eC) == areEqual || domination(cC, eC) == snd_dominates) {
 										cumulativeCs = NULL;	//??????   //std::remove(cumulativeCs.begin(), cumulativeCs.end(), cC);
 										break;
@@ -373,66 +387,74 @@ std::vector<Sptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 
 
 void updateMap() {
-	// initializations
-	bool nodes_changes = false, vehicle_moved = false;
-	Sptr_toNode N_inOld = nullptr;
-	std::vector<Sptr_toNode> newNodes;	newNodes.clear();
 
 	ReadMap();	// to add -> wait for any weight cost to change
 
-	for (auto d_ptr : newMap) {
-		N_inOld = findNodeptr(d_ptr->X, d_ptr->Y);
-		if (N_inOld == nullptr) {	//Node not found
-			std::cout << " => coordinates [" << d_ptr->X << "," << d_ptr->Y << "] were not in the old map, so a new node will be created.\n"; //debug		
-			NodesVect.push_back(std::make_shared<Node>(d_ptr->X, d_ptr->Y, d_ptr->cost, d_ptr->nodeType));	//define new Node
+	if (successful_read) {
+		// initializations
+		bool nodes_changes = false, vehicle_moved = false;
+		Sptr_toNode N_inOld = nullptr;
+		std::vector<Sptr_toNode> newNodes;	newNodes.clear();
 
-			newNodes.push_back(findNodeptr(d_ptr->X, d_ptr->Y));	// used later to update adjacents (should always find it, it was just created!)
 
-			nodes_changes = true;
-		}
-		else {						//Node found
-			if (d_ptr->cost != N_inOld->cost || d_ptr->nodeType != N_inOld->nodeType) {  //the node changed its cost or type (start/goal/any):
+		for (auto d_ptr : newMap) {
+			N_inOld = findNodeptr(d_ptr->X, d_ptr->Y);
+			if (N_inOld == nullptr) {	//Node not found
+				std::cout << " => coordinates [" << d_ptr->X << "," << d_ptr->Y << "] were not in the old map, so a new node will be created.\n"; //debug		
+				NodesVect.push_back(std::make_shared<Node>(d_ptr->X, d_ptr->Y, d_ptr->cost, d_ptr->nodeType));	//define new Node
+
+				newNodes.push_back(findNodeptr(d_ptr->X, d_ptr->Y));	// used later to update adjacents (should always find it, it was just created!)
+
 				nodes_changes = true;
-				N_inOld->cost = d_ptr->cost;	// = "Update cost" /*11*/
-				N_inOld->nodeType = d_ptr->nodeType;
-				update_rhs(N_inOld);			// = "Update Vertex" /*12*/
-				N_inOld->parents.clear();					//NOT OPTIMIZED (1)
-				updateAdjacents(N_inOld);
-				for (auto adj : N_inOld->AdjacentsVect) {	//NOT OPTIMIZED (1)
-					adj->parents.clear();					//NOT OPTIMIZED (1)
+			}
+			else {						//Node found
+				if (d_ptr->cost != N_inOld->cost || d_ptr->nodeType != N_inOld->nodeType) {  //the node changed its cost or type (start/goal/any):
+					if (d_ptr->nodeType != N_inOld->nodeType	&&	d_ptr->nodeType == start) {
+						vehicle_moved = true;
+					}
+					nodes_changes = true;
+					N_inOld->cost = d_ptr->cost;	// = "Update cost" /*11*/
+					N_inOld->nodeType = d_ptr->nodeType;
+					update_rhs(N_inOld);			// = "Update Vertex" /*12*/
+					N_inOld->parents.clear();					//NOT OPTIMIZED (1)
+					updateAdjacents(N_inOld);
+					for (auto adj : N_inOld->AdjacentsVect) {	//NOT OPTIMIZED (1)
+						adj->parents.clear();					//NOT OPTIMIZED (1)
+					}
+				}
+				//else: Node found but there were no modifications to it
+			}
+
+			if (nodes_changes) {
+				if (d_ptr->nodeType == start) {
+					ptrToStart = findNodeptr(d_ptr->X, d_ptr->Y);
+					//vehicle_moved = true;
+				}
+				if (d_ptr->nodeType == goal) {
+					ptrToGoal = findNodeptr(d_ptr->X, d_ptr->Y);
 				}
 			}
-			//else: Node found but there were no modifications to it
 		}
 
+		// once we finished updating the map:
 		if (nodes_changes) {
-			if (d_ptr->nodeType == start) {
-				ptrToStart = findNodeptr(d_ptr->X, d_ptr->Y);
-				vehicle_moved = true;
+			if (map_count > 0) {	//map_count=0 is the first reading
+				if (vehicle_moved) {	//start node has changed	
+					k_m += heuristic(ptrToGoal);
+					std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
+				}
+				computeMOPaths();	/*13*/
 			}
-			if (d_ptr->nodeType == goal) {
-				ptrToGoal = findNodeptr(d_ptr->X, d_ptr->Y);
-			}
-		}
-	}
 
-	// once we finished updating the map:
-	if (nodes_changes) {
-		if (map_count > 0) {	//map_count=0 is the first reading
-			if (vehicle_moved) {	//start node has changed	
-				k_m += heuristic(ptrToGoal);
-				std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
-			}
-			computeMOPaths();	/*13*/
+			for (auto newN : newNodes) {	//fill adjacents to each node
+				findAdjacents(newN);
+				if (map_count > 0) {	//map_count=0+1 is the first reading
+					for (auto ad_newN : newN->AdjacentsVect)
+						addAdj(ad_newN, newN->X, newN->Y);	//adding the new node as adjacents to his adjacents
+				}
+			} //(can't be done in constructor because not all nodes have been registered yet)
+			// the nodes are only added, if a node becomes unavaliable it remains in the list but with cost = inf
 		}
 
-		for (auto newN : newNodes) {	//fill adjacents to each node
-			findAdjacents(newN);
-			if (map_count > 0) {	//map_count=0+1 is the first reading
-				for (auto ad_newN : newN->AdjacentsVect)
-					addAdj(ad_newN, newN->X, newN->Y);	//adding the new node as adjacents to his adjacents
-			}
-		} //(can't be done in constructor because not all nodes have been registered yet)
-		// the nodes are only added, if a node becomes unavaliable it remains in the list but with cost = inf
 	}
 }

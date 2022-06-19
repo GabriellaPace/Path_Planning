@@ -1,25 +1,30 @@
 #include "Image.h"
 
-Color::Color()
-	: R(0), G(0), B(0)
-{
-}
-
-Color::Color(float R, float G, float B)
-	: R(R), G(G), B(B)
-{
-}
-
-Color::~Color()
-{
-}
+//Color::Color()
+//	: R(0), G(0), B(0)
+//{
+//}
+//
+//Color::Color(float R, float G, float B)
+//	: R(R), G(G), B(B)
+//{
+//}
+//
+//Color::~Color()
+//{
+//}
 
 Image::Image()
 {
 }
 
+//Image::Image(int width, int height)
+//	: m_width(width), m_height(height), m_colors(std::vector<Color>(width * height))
+//{
+//}
+
 Image::Image(int width, int height)
-	: m_width(width), m_height(height), m_colors(std::vector<Color>(width * height))
+	: m_width(width), m_height(height), m_greys(std::vector<float>(width * height))
 {
 }
 
@@ -27,16 +32,29 @@ Image::~Image()
 {
 }
 
-Color Image::GetColor(int x, int y) const
+//Color Image::GetColor(int x, int y) const
+//{
+//	return m_colors[y*m_width + x]; //we read left to right and then jump up to next row (y = how many rows up we are). Every row has m_width amount of pixels.
+//}
+//
+//void Image::SetColor(const Color & color, int x, int y)
+//{
+//	m_colors[y*m_width + x].R = color.R;
+//	m_colors[y*m_width + x].G = color.G;
+//	m_colors[y*m_width + x].B = color.B;
+//}
+
+float Image::GetGrey(int x, int y) const
 {
-	return m_colors[y*m_width + x]; //we read left to right and then jump up to next row (y = how many rows up we are). Every row has m_width amount of pixels.
+	return m_greys[y*m_width + x]; //we read left to right and then jump up to next row (y = how many rows up we are). Every row has m_width amount of pixels.
 }
 
-void Image::SetColor(const Color & color, int x, int y)
+void Image::SetGrey(const float & grey, int x, int y)
 {
-	m_colors[y*m_width + x].R = color.R;
-	m_colors[y*m_width + x].G = color.G;
-	m_colors[y*m_width + x].B = color.B;
+	m_greys[y*m_width + x]	   = grey;
+	//m_greys[y*m_width + x + 1] = grey;
+	//m_greys[y*m_width + x + 2] = grey;
+	//m_greys[y*m_width + x + 3] = 0;
 }
 
 //Parts REQUIRED in a bitmap file:
@@ -50,61 +68,77 @@ Every pixel uses 3B (1 for every color), so we might need/have a padding at the 
 	Bytes of padding = [4 - ( NumberOfPixelsInARow * 3 / 4 )] / 4		(the last /4 is to obtain 0 in case we have 4-0)
 */
 
-void Image::Read(const char * path)
-{
-	std::ifstream f;
-	f.open(path, std::ios::in | std::ios::binary);	//reading (::in) a file in binary
 
-	if (!f.is_open()) { // = if the opening was NOT successful
-		std::cout << "ERROR: File could not be opened.\n";
-		return;
-	}
-
-	const int fileHeaderSize = 14;	//fixed
-	const int informationHeaderSize = 40;	//fixed
-
-	// reinterpret_cast:  doesn't modify the data in any way, just interprets it in a different way
-	// static_cast:       keeps the value and changes the type
-	unsigned char fileHeader[fileHeaderSize];
-	f.read(reinterpret_cast<char*>(fileHeader), fileHeaderSize);
-
-	if (fileHeader[0] != 'B' || fileHeader[1] != 'M') {		//check that the file we are reading is actually a bitmap:
-		std::cout << "ERROR: The specified path does not correspond to a bitmap image.\n";
-		f.close();
-		return;
-	}
-
-	unsigned char informationHeader[informationHeaderSize];
-	f.read(reinterpret_cast<char*>(informationHeader), informationHeaderSize);
-
-	int fileSize = fileHeader[2] + (fileHeader[3] << 8) + (fileHeader[4] << 16) + (fileHeader[5] << 24);	//joining bytes
-	m_width = informationHeader[4] + (informationHeader[5] << 8) + (informationHeader[6] << 16) + (informationHeader[7] << 24);
-	m_height = informationHeader[8] + (informationHeader[9] << 8) + (informationHeader[10] << 16) + (informationHeader[11] << 24);
-
-	m_colors.resize(m_width * m_height);
-
-	//const int paddingAmount = ((4 - (m_width * 3) % 4) % 4);	//calculating how much padding there is
-	const int paddingAmount = ((4 - (m_width) % 4) % 4);	//calculating how much padding there is
-
-
-	for (int y = 0; y < m_height; ++y) {	//rows
-		for (int x = 0; x < m_width; ++x) {	//coloumns
-			unsigned char color[3];
-
-			f.read(reinterpret_cast<char*>(color), 3);	//reading the colors of 1 pixel (need 3B)
-
-			//in .bmp the order is (B,G,R), so we start from last one
-			m_colors[y*m_width + x].R = static_cast<float>(color[2]) / 255.0f;
-			m_colors[y*m_width + x].G = static_cast<float>(color[1]) / 255.0f;
-			m_colors[y*m_width + x].B = static_cast<float>(color[0]) / 255.0f;
-		}
-
-		f.ignore(paddingAmount);
-	}
-
-	f.close();
-	std::cout << "File read.\n";
-}
+//void Image::Read(const char * path, bool mapping)
+//{
+//	std::ifstream f;
+//	f.open(path, std::ios::in | std::ios::binary);	//reading (::in) a file in binary
+//
+//	if (!f.is_open()) { // = if the opening was NOT successful
+//		std::cout << "ERROR: File could not be opened.\n";
+//		return;
+//	}
+//
+//	const int fileHeaderSize = 14;	//fixed
+//	const int informationHeaderSize = 40;	//fixed
+//
+//	// reinterpret_cast:  doesn't modify the data in any way, just interprets it in a different way
+//	// static_cast:       keeps the value and changes the type
+//	unsigned char fileHeader[fileHeaderSize];
+//	f.read(reinterpret_cast<char*>(fileHeader), fileHeaderSize);
+//
+//	if (fileHeader[0] != 'B' || fileHeader[1] != 'M') {		//check that the file we are reading is actually a bitmap:
+//		std::cout << "ERROR: The specified path does not correspond to a bitmap image.\n";
+//		f.close();
+//		return;
+//	}
+//
+//	unsigned char informationHeader[informationHeaderSize];
+//	f.read(reinterpret_cast<char*>(informationHeader), informationHeaderSize);
+//
+//	int fileSize = fileHeader[2] + (fileHeader[3] << 8) + (fileHeader[4] << 16) + (fileHeader[5] << 24);	//joining bytes
+//	m_width = informationHeader[4] + (informationHeader[5] << 8) + (informationHeader[6] << 16) + (informationHeader[7] << 24);
+//	m_height = informationHeader[8] + (informationHeader[9] << 8) + (informationHeader[10] << 16) + (informationHeader[11] << 24);
+//
+//	//m_colors.resize(m_width * m_height);
+//	m_greys.resize(m_width * m_height);
+//
+//	//const int paddingAmount = ((4 - (m_width * 3) % 4) % 4);	//calculating how much padding there is
+//	const int paddingAmount = ((4 - (m_width) % 4) % 4);	//calculating how much padding there is
+//
+//
+//	for (int y = 0; y < m_height; ++y) {	//rows
+//		for (int x = 0; x < m_width; ++x) {	//coloumns
+//			//unsigned char color[3];
+//
+//			//f.read(reinterpret_cast<char*>(color), 3);	//reading the colors of 1 pixel (need 3B)
+//
+//			////in .bmp the order is (B,G,R), so we start from last one
+//			//m_colors[y*m_width + x].R = static_cast<float>(color[2]) / 255.0f;
+//			//m_colors[y*m_width + x].G = static_cast<float>(color[1]) / 255.0f;
+//			//m_colors[y*m_width + x].B = static_cast<float>(color[0]) / 255.0f;
+//
+//			//char grey = ' ';
+//			unsigned char grey[4];
+//
+//			//f.read(reinterpret_cast<char*>(grey), 1);	//reading the grey value of 1 pixel (need 1B)
+//			f.read(reinterpret_cast<char*>(grey), 4);
+//			m_greys[y*m_width + x] = static_cast<float>(grey[0]+(grey[1]<<8)+(grey[2]<<16)+(grey[3]<<24)) / 255.0f;
+//
+//			if (mapping) {
+//				int cost = (int)(m_greys[y*m_width + x] * 255.0f);
+//
+//				//std::cout << "X: " << x << ", Y: " << y << ", c: " << m_colors[y*m_width + x].R * 255.0f << std::endl << std::endl;
+//				newMap.push_back(std::make_shared<dummyNode>(x, y, cost, any));
+//			}
+//		}
+//
+//		f.ignore(paddingAmount);
+//	}
+//
+//	f.close();
+//	std::cout << "File read.\n";
+//}
 
 
 void Image::Export(const char * path) const
@@ -123,8 +157,9 @@ void Image::Export(const char * path) const
 
 	const int fileHeaderSize = 14;	//fixed
 	const int informationHeaderSize = 40;	//fixed
-	const int fileSize = fileHeaderSize + informationHeaderSize + (m_width * m_height * 3) + (paddingAmount * m_height);
+	//const int fileSize = fileHeaderSize + informationHeaderSize + (m_width * m_height * 3) + (paddingAmount * m_height);
 																	// ^ color data			// ^ multiplied for number of rows
+	const int fileSize = fileHeaderSize + informationHeaderSize + (m_width * m_height) + (paddingAmount * m_height);
 
 	unsigned char fileHeader[fileHeaderSize];
 
@@ -210,13 +245,19 @@ void Image::Export(const char * path) const
 
 	for (int y = 0; y < m_height; ++y) {	//rows
 		for (int x = 0; x < m_width; ++x) {	//coloumns
-			unsigned char R = static_cast<unsigned char>(GetColor(x, y).R * 225.0f);
-			unsigned char G = static_cast<unsigned char>(GetColor(x, y).G * 225.0f);
-			unsigned char B = static_cast<unsigned char>(GetColor(x, y).B * 225.0f);
+			//unsigned char R = static_cast<unsigned char>(GetColor(x, y).R * 225.0f);
+			//unsigned char G = static_cast<unsigned char>(GetColor(x, y).G * 225.0f);
+			//unsigned char B = static_cast<unsigned char>(GetColor(x, y).B * 225.0f);
 
-			unsigned char color[] = { B, G, R };	//inverted order, that's how -bmp are wrote
+			//unsigned char color[] = { B, G, R };	//inverted order, that's how -bmp are wrote
 
-			f.write(reinterpret_cast<char*>(color), 3);		// color needs 3B
+			//f.write(reinterpret_cast<char*>(color), 3);		// color needs 3B
+
+			unsigned char g = static_cast<unsigned char>(GetGrey(x, y) * 225.0f);
+
+			unsigned char grey[4] = {g,g,g,g};
+
+			f.write(reinterpret_cast<char*>(grey), 4);		// color needs 3B
 		}
 
 		f.write(reinterpret_cast<char*>(bmpPad), paddingAmount);		// adding the padding
