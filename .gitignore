@@ -1,3 +1,7 @@
+# excluded because they exceed GitHub's file size limit of 100.00 MB
+*.dll
+
+
 # Visual Studio 2015/2017 cache/options directory
 .vs/
 

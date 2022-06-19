@@ -16,7 +16,7 @@ gui = True
 scale = 1
 #amplitude = 1
 cmap = cm.twilight  #for gui
-width = height = 100 #1000
+width = height = 110 #1000
 out_image = np.zeros((height+2, width+2, 1), np.float32)
 
 sign = lambda a: (a>0) - (a<0)
@@ -88,5 +88,5 @@ for sample in range(1):  #for sample in range(40):
     plt.show()
   
   path = "C:/Dev/Path_Planning/Maps"
-  cv2.imwrite(f"{path}/{sample}_dem.tiff", out_image)     # cv2.imwrite("%03d_dem.tiff"%sample, out_image)    # out_image = height map
+  #cv2.imwrite(f"{path}/{sample}_dem.tiff", out_image)     # cv2.imwrite("%03d_dem.tiff"%sample, out_image)    # out_image = height map
   cv2.imwrite(f"{path}/{sample}_gradient.bmp", ~slope)    # cv2.imwrite("%03d_gradient.bmp"%sample, ~slope)
