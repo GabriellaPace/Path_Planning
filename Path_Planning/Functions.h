@@ -20,8 +20,7 @@ void print_queue() {
 	if (queue.empty())
 		std::cout << " empty!\n";
 	else {
-		for (auto N : queue)
-		{
+		for (auto N : queue) {
 			N.print_NodeKey();
 		}
 	}
@@ -156,7 +155,6 @@ struct NDS_struct nonDom_succs(Sptr_toNode N) {				// find non-dominated success
 
 	NDS_struct NDS_sol;
 	bool nonDom_flag;
-	//Sptr_toNode adNi, adNj;
 	float cC_out, cC_in;  // still considering single g and rhs -> will become vectors //cC = cumulative cost (outer/inner loop)
 
 	for (auto adNi : N->AdjacentsVect) {		//for each element of AdjacentsVect, we'll check if it dominated every other element in the same List
@@ -176,20 +174,6 @@ struct NDS_struct nonDom_succs(Sptr_toNode N) {				// find non-dominated success
 			NDS_sol.NDS_rhs = cC_out;	//c(N,s1) + g(s1)
 		}
 	}
-
-	//if (NDS_sol.NDS_succs.size() == 8) {	//@
-	//	Sptr_toNode minH_Node;
-	//	float minH = std::numeric_limits<float>::infinity();
-	//	for (auto nh : NDS_sol.NDS_succs) {
-	//		//std::cout << "minH = " << minH << ", h = " << heuristic(nh) << std::endl << std::endl;
-
-	//		if (heuristic(nh) < minH) {	//FIND A BETTER CRITERIA
-	//			minH_Node = nh;
-	//		}
-	//	}
-	//	NDS_sol.NDS_succs.clear();
-	//	NDS_sol.NDS_succs.push_back(minH_Node);
-	//}	//@
 
 	return NDS_sol;
 }
@@ -234,7 +218,7 @@ bool start_doesNot_dominate(const Node N) {	// like < operator of Node (dominant
 		if (ptrToStart->key.second < N.key.second)
 			return false;
 		else if (ptrToStart->key.second > N.key.second)
-			return false;
+			return true;
 		else { // k1==k1 & k2==k2
 			// to avoid premature termination in computeMOPaths() -> if Start has same key of top-node, execute! (so appears >)
 			return true;
@@ -251,15 +235,34 @@ void computeMOPaths() {  //function COMPUTE_MO_PATHS()
 
 	calculateKey(ptrToStart);
 
-	while (!queue.empty() && !(*ptrToStart < *(queue.begin()))) {
-	//while ( !queue.empty()	&&	start_doesNot_dominate(*(queue.begin())) ) {	// termination criteria = start.key dominates the top key in the queue ( < : ordering rule, based on key)	
+
+	if (!queue.empty()) {	//@ DEBUG
+		for (auto N : queue) {
+			if ( (!(*ptrToStart < N))	!=	start_doesNot_dominate(N) ) {
+				std::cout << "PROBLEM with start_doesNot_dominate()!!!\n";
+				std::cout << "   " << (!(*ptrToStart < N)) << "  -  " << start_doesNot_dominate(N) << std::endl;
+				std::cout << "Start key = ";	ptrToStart->print_NodeKey();
+				std::cout << "Node key  = ";	N.print_NodeKey();
+				std::cout << std::endl;
+			}
+		}	
+	}
+	
+
+	//while (!queue.empty() && !(*ptrToStart < *(queue.begin()))) {
+	while ( !queue.empty()	&&	start_doesNot_dominate(*(queue.begin())) ) {	// termination criteria = start.key dominates the top key in the queue ( < : ordering rule, based on key)	
 		auto queue_top = queue.begin();
 		deqN_wOldKey = *queue_top;  //pick top Node in the queue (deqN = de-queued Node)
 		queue.erase(queue_top);		//equivalent to "queue.pop()" -> remove dequeued node from the queue
 
 		deqN_ptr = findNodeptr(deqN_wOldKey.X, deqN_wOldKey.Y);	 //ptr to de-queued node
-		calculateKey(deqN_ptr);
 
+		//if (map_count > 4) {	//@ DEBUG
+			//deqN_ptr->print_Coord();	//@ DEBUG
+			//std::cout << std::endl;
+		//}
+
+		calculateKey(deqN_ptr);
 
 		if (deqN_wOldKey < *deqN_ptr) {					 //put it back in queue with new key  ->  when does this happen???
 			queue.insert(*deqN_ptr);
@@ -282,15 +285,13 @@ void computeMOPaths() {  //function COMPUTE_MO_PATHS()
 
 		calculateKey(ptrToStart); //for next loop (needed??)
 	}
-	std::cout << " => Computed MO Paths, done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl << std::endl;
+	std::cout << " => Computed MO Paths, done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;
 }
 
 
-std::vector<Sptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()  
-//expanding a state = observe the domination between g and rhs
-//Ns = node to expand, s1 = nondominated successor of Ns  (s1 = s’ ,  s2 = s’’)
-	std::cout << "    starting generateMOPaths() at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s ..." << std::endl;
-
+std::vector<Sptr_toNode> generateMOPaths() {	//function GENERATE_MO_PATHS()  
+												//expanding a state = observe the domination between g and rhs
+												//Ns = node to expand, s1 = nondominated successor of Ns  (s1 = s’ ,  s2 = s’’)
 	// DECLARATIONS
 	Deq expandingStates;	// (de)queue of (ptr to) nodes which adjacents should be updated = to expand (FIFO)
 	std::vector<Sptr_toNode> nonDomSuccs;
@@ -309,14 +310,14 @@ std::vector<Sptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 
 		nonDomSuccs = nonDom_succs(Ns).NDS_succs;		// find non-dominated successors, wrt multiobjective c+g
 
-		if (map_count > 0 && Ns->nodeType == start) {	//@ DEBUG
-			std::cout << "-> nonDomSuccs of  Ns=Start:\n";
-			for (auto i : nonDomSuccs) {
-				i->print_Coord();
-				std::cout << std::endl;
-			}
-			std::cout << std::endl << std::endl;
-		}
+		//if (map_count > 0 && Ns->nodeType == start) {	//@ DEBUG
+		//	std::cout << "-> nonDomSuccs of  Ns=Start:\n";
+		//	for (auto i : nonDomSuccs) {
+		//		i->print_Coord();
+		//		std::cout << std::endl;
+		//	}
+		//	std::cout << std::endl << std::endl;
+		//}
 		
 
 		for (auto s1 : nonDomSuccs) {
@@ -384,8 +385,6 @@ std::vector<Sptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 		
 	}
 
-	std::cout << "    first phase of generateMOPaths() done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;
-
 /*-- SECOND phase (from goal to start) ----------------------------------------------------------*/
 		//solutionPaths = construct paths recursively traversing parents;
 	float min_g1;
@@ -417,7 +416,7 @@ std::vector<Sptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 	std::reverse(solutionPaths.begin(), solutionPaths.end());	//to have it from start to goal
 
 
-	std::cout << " => Generated MO Paths, done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl << std::endl;
+	std::cout << " => Generated MO Paths, done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;
 	return solutionPaths;
 }
 
@@ -434,13 +433,16 @@ void updateMap() {
 
 
 		for (auto d_ptr : newMap) {
-			N_inOld = findNodeptr(d_ptr->X, d_ptr->Y);
-			if (N_inOld == nullptr) {	//Node not found
+			if (map_count > 0) { //@@
+				N_inOld = findNodeptr(d_ptr->X, d_ptr->Y);
+			} //@@
+
+			if (N_inOld == nullptr	|| map_count==0) {	//Node not found //@@
 				//std::cout << " => coordinates [" << d_ptr->X << "," << d_ptr->Y << "] were not in the old map, so a new node will be created.\n"; //debug		
 				NodesVect.push_back(std::make_shared<Node>(d_ptr->X, d_ptr->Y, d_ptr->cost, d_ptr->nodeType));	//define new Node
-
-				newNodes.push_back(findNodeptr(d_ptr->X, d_ptr->Y));	// used later to update adjacents (should always find it, it was just created!)
-
+				if (map_count > 0) {
+					newNodes.push_back(findNodeptr(d_ptr->X, d_ptr->Y));	// used later to update adjacents (should always find it, it was just created!)
+				}
 				nodes_changes = true;
 			}
 			else {						//Node found
@@ -451,9 +453,9 @@ void updateMap() {
 					nodes_changes = true;
 					N_inOld->cost = d_ptr->cost;	// = "Update cost" /*11*/
 					N_inOld->nodeType = d_ptr->nodeType;
-					update_rhs(N_inOld);		//@			// = "Update Vertex" /*12*/
+					update_rhs(N_inOld);			// = "Update Vertex" /*12*/
 					N_inOld->parents.clear();					//NOT OPTIMIZED (1)
-					updateAdjacents(N_inOld);	//@
+					//updateAdjacents(N_inOld);	//@
 					for (auto adj : N_inOld->AdjacentsVect) {	//NOT OPTIMIZED (1)
 						adj->parents.clear();					//NOT OPTIMIZED (1)
 					}
@@ -475,32 +477,38 @@ void updateMap() {
 
 
 		// once we finished updating the map:
-		if (nodes_changes) {
-			for (auto newN : newNodes) {	//fill adjacents to each node
-				#ifndef OPTIMIZE
-					findAdjacents(newN);
-				#endif
-
-				if (map_count > 0) {	//map_count=0+1 is the first reading
-					for (auto ad_newN : newN->AdjacentsVect)
-						addAdj(ad_newN, newN->X, newN->Y);	//adding the new node as adjacents to his adjacents
-				}
-			} //(can't be done in constructor because not all nodes have been registered yet)
+		if (nodes_changes	&&	map_count > 0) {	//@@
+			//for (auto newN : newNodes) {	//fill adjacents to each node
+			//	#ifndef OPTIMIZE
+			//		findAdjacents(newN);
+			//	#endif
+			//
+			//	if (map_count > 0) {	//map_count=0+1 is the first reading	//@@
+			//		for (auto ad_newN : newN->AdjacentsVect)
+			//			addAdj(ad_newN, newN->X, newN->Y);	//adding the new node as adjacents to his adjacents
+			//	}
+			//} //(can't be done in constructor because not all nodes have been registered yet)
 			// the nodes are only added, if a node becomes unavaliable it remains in the list but with cost = inf
-			
-			if (map_count > 0) {	//map_count=0 is the first reading
+			//
+			//if (map_count > 0) {	//map_count=0 is the first reading
+				for (auto newN : newNodes) {	//fill adjacents to each node
+					for (auto ad_newN : newN->AdjacentsVect)	//@@ TO BE OPTIMIZED
+						addAdj(ad_newN, newN->X, newN->Y);	//adding the new node as adjacents to his adjacents
+				}	//@@
+
+
 				if (vehicle_moved) {	//start node has changed	
 					k_m += heuristic(ptrToGoal);
 					std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
 				}
 
-				std::cout << " => UpdateMap() done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl << std::endl;
+				std::cout << " => UpdateMap() done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;
 				computeMOPaths();	/*13*/
-			}
+			//}
 		}
 
 	}
 	if (map_count == 0) {
-		std::cout << " => UpdateMap() done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl << std::endl;
+		std::cout << " => UpdateMap() done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;
 	}
 }

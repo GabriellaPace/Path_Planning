@@ -1,6 +1,6 @@
 #pragma once
 #include "Head.h"
-
+#define OPTIMIZE //tentativo pre migliorare performance
 
 enum NodeTypes {
 	start = 0, any = 1, goal = 2

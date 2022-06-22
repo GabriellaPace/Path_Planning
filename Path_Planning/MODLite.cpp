@@ -19,7 +19,7 @@ int main() {
 	}
 
 	//while (ptrToStart != ptrToGoal) {
-	while (map_count < 3) {
+	while (map_count < 20) {
 		if (successful_read) {
 			solutionPaths = generateMOPaths();
 			if (solutionPaths.empty()) {
@@ -28,7 +28,7 @@ int main() {
 			else {
 				//print_solution(solutionPaths);
 				save_solution_img(solutionPaths);
-				std::cout << " => Solution found.\n\n";
+				std::cout << "\n => Solution found.\n\n";
 			}
 		}
 		//sleep(5);

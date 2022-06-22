@@ -12,6 +12,8 @@ int map_count = 0;	// to change map in different iterations
 bool successful_read = false;
 std::string img_path = "C:/Dev/Path_Planning/Maps/";
 
+//#define MANUAL	//to manually insert the coordinates of start and goal each time
+
 /*------------------------------------------------------------------------------------------------------------------*/
 
 Sptr_toDummy findDummyptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
@@ -53,38 +55,50 @@ void ReadMap() {
 
 		// setting start and goal nodes:
 		Sptr_toDummy dummy;
-		//int x_in, y_in;
-		//std::cout << "Insert coordinates of START node: x y\n";
-		//std::cin >> x_in; std::cin >> y_in;
-		//while (x_in < 0 || x_in > img_mat.rows || y_in < 0 || y_in > img_mat.rows) {
-		//	std::cout << "Start node coordinates are out of range, please insert new ones (Xmax = " << img_mat.rows 
-		//																			 << ", Ymax = " << img_mat.rows << "):\n";
-		//	std::cin >> x_in; std::cin >> y_in;
-		//}
-		//dummy = findDummyptr(x_in, y_in);
-		//dummy->nodeType = start;
-		//std::cout << "Insert coordinates of GOAL node: x y\n";
-		//std::cin >> x_in; std::cin >> y_in;
-		//while (x_in < 0 || x_in > img_mat.rows || y_in < 0 || y_in > img_mat.rows) {
-		//	std::cout << "Goal node coordinates are out of range, please insert new ones (Xmax = " << img_mat.rows
-		//		<< ", Ymax = " << img_mat.rows << "):\n";
-		//	std::cin >> x_in; std::cin >> y_in;
-		//}
-		//dummy = findDummyptr(x_in, y_in);
-		//dummy->nodeType = goal;
+		#ifdef MANUAL
+			int x_in, y_in;
+			std::cout << "Insert coordinates of START node: x y\n";
+			std::cin >> x_in; std::cin >> y_in;
+			while (x_in < 0 || x_in > img_mat.rows || y_in < 0 || y_in > img_mat.rows) {
+				std::cout << "Start node coordinates are out of range, please insert new ones (Xmax = " << img_mat.rows 
+																						 << ", Ymax = " << img_mat.rows << "):\n";
+				std::cin >> x_in; std::cin >> y_in;
+			}
+			dummy = findDummyptr(x_in, y_in);
+			dummy->nodeType = start;
+			std::cout << "Insert coordinates of GOAL node: x y\n";
+			std::cin >> x_in; std::cin >> y_in;
+			while (x_in < 0 || x_in > img_mat.rows || y_in < 0 || y_in > img_mat.rows) {
+				std::cout << "Goal node coordinates are out of range, please insert new ones (Xmax = " << img_mat.rows
+					<< ", Ymax = " << img_mat.rows << "):\n";
+				std::cin >> x_in; std::cin >> y_in;
+			}
+			dummy = findDummyptr(x_in, y_in);
+			dummy->nodeType = goal;
+		#endif // MANUAL
 
-
-
-		//std::vector<int> x_start = { 0, 0, 20};
-		//std::vector<int> y_start = { 0, 0, 20};
-		//dummy = findDummyptr(x_start[map_count], y_start[map_count]);
-		dummy = findDummyptr(10, 10);
-		dummy->nodeType = start;
-		//std::vector<int> x_goal  = { 25, 25, 25};
-		//std::vector<int> y_goal  = { 85, 85, 85};
-		//dummy = findDummyptr(x_goal[map_count], y_goal[map_count]);
-		dummy = findDummyptr(120, 180);
-		dummy->nodeType = goal;
+		#ifndef MANUAL
+			//std::vector<int> x_start = { 0, 0, 20};
+			//std::vector<int> y_start = { 0, 0, 20};
+			//dummy = findDummyptr(x_start[map_count], y_start[map_count]);
+			dummy = findDummyptr(10, 10);
+			if (dummy == NULL) {
+				std::cout << "OUT OF RANGE!\n";
+				std::cout << img_mat.rows << "  x  " << img_mat.rows << std::endl;
+			}
+			dummy->nodeType = start;
+			//std::vector<int> x_goal  = { 25, 25, 25};
+			//std::vector<int> y_goal  = { 85, 85, 85};
+			//dummy = findDummyptr(x_goal[map_count], y_goal[map_count]);
+			//dummy = findDummyptr(120, 180); //200x200
+			//dummy = findDummyptr(190, 220); //250x250
+			dummy = findDummyptr(200, 460); //500x500
+			if (dummy == NULL) {
+				std::cout << "OUT OF RANGE!\n";
+				std::cout << img_mat.rows << "  x  " << img_mat.rows << std::endl;
+			}
+			dummy->nodeType = goal;
+		#endif // !MANUAL
 
 
 		std::cout << "*********************************************\n => RECEIVED NEW MAP: {" << map_count << "}\n";
@@ -96,7 +110,7 @@ void ReadMap() {
 	}
 }
 
-//Manual Node insertion (ReadMap())
+//Node insertion by hand (no .bmp) (ReadMap())
 /*
 void ReadMap() {
 	newMap.clear();
