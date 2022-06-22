@@ -12,6 +12,7 @@ set queue;	//filled with Nodes, NOT ptr_to_Nodes !!
 Sptr_toNode  ptrToStart = nullptr, ptrToGoal = nullptr;
 float k_m = 0;
 
+clock_t startTime;	//debug
 
 ////////////////////////////////////// Debug functions //////////////////////////////////////
 void print_queue() {
@@ -66,7 +67,6 @@ void print_solution(std::vector<Sptr_toNode> solution_vect) {
 	*/
 }
 
-
 void save_solution_img(std::vector<Sptr_toNode> solution_vect) {
 	cv::Mat img_mat = cv::imread((img_path + std::to_string(map_count) + "_gradient.bmp").c_str(), cv::IMREAD_GRAYSCALE);
 	
@@ -82,11 +82,10 @@ void save_solution_img(std::vector<Sptr_toNode> solution_vect) {
 Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
 	int x = xx;
 	int y = yy;
-	int idx;
 	auto it = find_if(NodesVect.begin(), NodesVect.end(),
 			  [&x, &y](const Sptr_toNode& obj) {return ((*obj).X == x && (*obj).Y == y); });
 	if (it != NodesVect.end()) {
-		idx = (int)std::distance(NodesVect.begin(), it);
+		auto idx = std::distance(NodesVect.begin(), it);
 		return NodesVect[idx];
 	}
 	else {
@@ -120,7 +119,8 @@ int compute_cost(Sptr_toNode n1, Sptr_toNode n2) {	// edge-cost derived from nod
 /*------------------------------------- Nodes updates -------------------------------------*/
 
 void addAdj(Sptr_toNode N, int oriz, int vert) {
-	auto it = find_if(NodesVect.begin(), NodesVect.end(), [&oriz, &vert](const Sptr_toNode& obj) {return ((*obj).X == oriz && (*obj).Y == vert); });
+	auto it = find_if(NodesVect.begin(), NodesVect.end(), 
+			  [&oriz, &vert](const Sptr_toNode& obj) {return ((*obj).X == oriz && (*obj).Y == vert); });
 	if (it != NodesVect.end()) {
 		auto idx = std::distance(NodesVect.begin(), it);
 		N->AdjacentsVect.push_back(NodesVect[idx]);
@@ -129,15 +129,14 @@ void addAdj(Sptr_toNode N, int oriz, int vert) {
 
 
 void findAdjacents(Sptr_toNode N) {
-	int oriz, vert;
-	oriz = N->X + 0;	vert = N->Y + 1;	addAdj(N, oriz, vert);
-						vert = N->Y - 1;	addAdj(N, oriz, vert);
-	oriz = N->X + 1;	vert = N->Y + 0;	addAdj(N, oriz, vert);
-	oriz = N->X - 1;						addAdj(N, oriz, vert);
-	oriz = N->X + 1;	vert = N->Y + 1;	addAdj(N, oriz, vert);
-	oriz = N->X - 1;						addAdj(N, oriz, vert);
-	oriz = N->X + 1;	vert = N->Y - 1;	addAdj(N, oriz, vert);
-	oriz = N->X - 1;						addAdj(N, oriz, vert);
+	addAdj(N,  N->X    ,  N->Y + 1);
+	addAdj(N,  N->X	   ,  N->Y - 1);
+	addAdj(N,  N->X + 1,  N->Y    );
+	addAdj(N,  N->X - 1,  N->Y    );
+	addAdj(N,  N->X + 1,  N->Y + 1);
+	addAdj(N,  N->X - 1,  N->Y + 1);
+	addAdj(N,  N->X + 1,  N->Y - 1);
+	addAdj(N,  N->X - 1,  N->Y - 1);
 }
 
 
@@ -148,9 +147,16 @@ struct NDS_struct {
 
 struct NDS_struct nonDom_succs(Sptr_toNode N) {				// find non-dominated successors, wrt multiobjective c+g
 															//nonDomSuccs = nonDom_[s' in succ(Ns)](sum(c(Ns, s’), g(s’)) 
+	#ifdef OPTIMIZE
+		if (!N->AdjComputed) {
+			findAdjacents(N);
+			N->AdjComputed = true;
+		}
+	#endif
+
 	NDS_struct NDS_sol;
 	bool nonDom_flag;
-	Sptr_toNode adNi, adNj;
+	//Sptr_toNode adNi, adNj;
 	float cC_out, cC_in;  // still considering single g and rhs -> will become vectors //cC = cumulative cost (outer/inner loop)
 
 	for (auto adNi : N->AdjacentsVect) {		//for each element of AdjacentsVect, we'll check if it dominated every other element in the same List
@@ -164,11 +170,26 @@ struct NDS_struct nonDom_succs(Sptr_toNode N) {				// find non-dominated success
 				break;
 			}
 		}
+
 		if (nonDom_flag  &&  find(NDS_sol.NDS_succs.begin(), NDS_sol.NDS_succs.end(), adNi) == NDS_sol.NDS_succs.end()) {	// to avoid duplicates
 			NDS_sol.NDS_succs.push_back(adNi);
 			NDS_sol.NDS_rhs = cC_out;	//c(N,s1) + g(s1)
 		}
 	}
+
+	//if (NDS_sol.NDS_succs.size() == 8) {	//@
+	//	Sptr_toNode minH_Node;
+	//	float minH = std::numeric_limits<float>::infinity();
+	//	for (auto nh : NDS_sol.NDS_succs) {
+	//		//std::cout << "minH = " << minH << ", h = " << heuristic(nh) << std::endl << std::endl;
+
+	//		if (heuristic(nh) < minH) {	//FIND A BETTER CRITERIA
+	//			minH_Node = nh;
+	//		}
+	//	}
+	//	NDS_sol.NDS_succs.clear();
+	//	NDS_sol.NDS_succs.push_back(minH_Node);
+	//}	//@
 
 	return NDS_sol;
 }
@@ -191,6 +212,13 @@ void update_rhs(Sptr_toNode N) {    //function UPDATE_VERTEX(u)
 
 
 void updateAdjacents(Sptr_toNode N) {
+	#ifdef OPTIMIZE
+		if (!N->AdjComputed) {
+			findAdjacents(N);
+			N->AdjComputed = true;
+		}
+	#endif
+
 	for (auto A_ptr : N->AdjacentsVect) {   //update each node adjacent to the modified one
 		update_rhs(A_ptr);
 	}
@@ -232,6 +260,7 @@ void computeMOPaths() {  //function COMPUTE_MO_PATHS()
 		deqN_ptr = findNodeptr(deqN_wOldKey.X, deqN_wOldKey.Y);	 //ptr to de-queued node
 		calculateKey(deqN_ptr);
 
+
 		if (deqN_wOldKey < *deqN_ptr) {					 //put it back in queue with new key  ->  when does this happen???
 			queue.insert(*deqN_ptr);
 		}
@@ -253,13 +282,15 @@ void computeMOPaths() {  //function COMPUTE_MO_PATHS()
 
 		calculateKey(ptrToStart); //for next loop (needed??)
 	}
-	std::cout << " => Computed MO Paths.\n\n";
+	std::cout << " => Computed MO Paths, done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl << std::endl;
 }
 
 
 std::vector<Sptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()  
 //expanding a state = observe the domination between g and rhs
 //Ns = node to expand, s1 = nondominated successor of Ns  (s1 = s’ ,  s2 = s’’)
+	std::cout << "    starting generateMOPaths() at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s ..." << std::endl;
+
 	// DECLARATIONS
 	Deq expandingStates;	// (de)queue of (ptr to) nodes which adjacents should be updated = to expand (FIFO)
 	std::vector<Sptr_toNode> nonDomSuccs;
@@ -275,7 +306,18 @@ std::vector<Sptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 		//Java: poll() returns the element at the head of the Queue [returns null if the Queue is empty]
 		Ns = expandingStates.front();
 		expandingStates.pop_front();
+
 		nonDomSuccs = nonDom_succs(Ns).NDS_succs;		// find non-dominated successors, wrt multiobjective c+g
+
+		if (map_count > 0 && Ns->nodeType == start) {	//@ DEBUG
+			std::cout << "-> nonDomSuccs of  Ns=Start:\n";
+			for (auto i : nonDomSuccs) {
+				i->print_Coord();
+				std::cout << std::endl;
+			}
+			std::cout << std::endl << std::endl;
+		}
+		
 
 		for (auto s1 : nonDomSuccs) {
 			cumulativeCs = NULL;	//re-initialization
@@ -284,7 +326,7 @@ std::vector<Sptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 				s1->parents[Ns] = compute_cost(Ns, s1);	// ^ so Ns is added as a parent of s' with corresponding cost c(s, s').
 			}
 			else {										// if Ns does have predefined parents
-				/*10*/ // cumulativeC = sum( c(Ns,s1), Ns.parents().values() ) 
+				/*10*/	// cumulativeC = sum( c(Ns,s1), Ns.parents().values() ) 
 				for (auto&[s1_ptr, s1_cost] : Ns->parents) {
 					cumulativeCs += s1_cost;	//"aggregated" cost??
 				}
@@ -342,13 +384,7 @@ std::vector<Sptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 		
 	}
 
-	////if (map_count == 3) {	//DEBUG
-	//	std::cout << "--------- ALL PARENTS ---------\n";
-	//	for (auto N : NodesVect) {
-	//		print_parents(N);
-	//	}
-	////}
-
+	std::cout << "    first phase of generateMOPaths() done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;
 
 /*-- SECOND phase (from goal to start) ----------------------------------------------------------*/
 		//solutionPaths = construct paths recursively traversing parents;
@@ -381,7 +417,7 @@ std::vector<Sptr_toNode> generateMOPaths() {  //function GENERATE_MO_PATHS()
 	std::reverse(solutionPaths.begin(), solutionPaths.end());	//to have it from start to goal
 
 
-	std::cout << " => Generated MO Paths.\n";
+	std::cout << " => Generated MO Paths, done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl << std::endl;
 	return solutionPaths;
 }
 
@@ -400,7 +436,7 @@ void updateMap() {
 		for (auto d_ptr : newMap) {
 			N_inOld = findNodeptr(d_ptr->X, d_ptr->Y);
 			if (N_inOld == nullptr) {	//Node not found
-				std::cout << " => coordinates [" << d_ptr->X << "," << d_ptr->Y << "] were not in the old map, so a new node will be created.\n"; //debug		
+				//std::cout << " => coordinates [" << d_ptr->X << "," << d_ptr->Y << "] were not in the old map, so a new node will be created.\n"; //debug		
 				NodesVect.push_back(std::make_shared<Node>(d_ptr->X, d_ptr->Y, d_ptr->cost, d_ptr->nodeType));	//define new Node
 
 				newNodes.push_back(findNodeptr(d_ptr->X, d_ptr->Y));	// used later to update adjacents (should always find it, it was just created!)
@@ -409,15 +445,15 @@ void updateMap() {
 			}
 			else {						//Node found
 				if (d_ptr->cost != N_inOld->cost || d_ptr->nodeType != N_inOld->nodeType) {  //the node changed its cost or type (start/goal/any):
-					if (d_ptr->nodeType != N_inOld->nodeType	&&	d_ptr->nodeType == start) {
+					if (d_ptr->nodeType != N_inOld->nodeType   &&   d_ptr->nodeType == start) {
 						vehicle_moved = true;
 					}
 					nodes_changes = true;
 					N_inOld->cost = d_ptr->cost;	// = "Update cost" /*11*/
 					N_inOld->nodeType = d_ptr->nodeType;
-					update_rhs(N_inOld);			// = "Update Vertex" /*12*/
+					update_rhs(N_inOld);		//@			// = "Update Vertex" /*12*/
 					N_inOld->parents.clear();					//NOT OPTIMIZED (1)
-					updateAdjacents(N_inOld);
+					updateAdjacents(N_inOld);	//@
 					for (auto adj : N_inOld->AdjacentsVect) {	//NOT OPTIMIZED (1)
 						adj->parents.clear();					//NOT OPTIMIZED (1)
 					}
@@ -435,26 +471,36 @@ void updateMap() {
 				}
 			}
 		}
+		std::cout << "    Updated nodes in NodesVect at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;
+
 
 		// once we finished updating the map:
 		if (nodes_changes) {
-			if (map_count > 0) {	//map_count=0 is the first reading
-				if (vehicle_moved) {	//start node has changed	
-					k_m += heuristic(ptrToGoal);
-					std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
-				}
-				computeMOPaths();	/*13*/
-			}
-
 			for (auto newN : newNodes) {	//fill adjacents to each node
-				findAdjacents(newN);
+				#ifndef OPTIMIZE
+					findAdjacents(newN);
+				#endif
+
 				if (map_count > 0) {	//map_count=0+1 is the first reading
 					for (auto ad_newN : newN->AdjacentsVect)
 						addAdj(ad_newN, newN->X, newN->Y);	//adding the new node as adjacents to his adjacents
 				}
 			} //(can't be done in constructor because not all nodes have been registered yet)
 			// the nodes are only added, if a node becomes unavaliable it remains in the list but with cost = inf
+			
+			if (map_count > 0) {	//map_count=0 is the first reading
+				if (vehicle_moved) {	//start node has changed	
+					k_m += heuristic(ptrToGoal);
+					std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
+				}
+
+				std::cout << " => UpdateMap() done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl << std::endl;
+				computeMOPaths();	/*13*/
+			}
 		}
 
+	}
+	if (map_count == 0) {
+		std::cout << " => UpdateMap() done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl << std::endl;
 	}
 }

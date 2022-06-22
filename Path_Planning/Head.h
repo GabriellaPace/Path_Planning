@@ -16,6 +16,8 @@
 //#include <opencv2/ximgproc.hpp>
 #include <opencv2/highgui.hpp>
 
+#include <time.h> //clock
+
 //#define DEBUG  //#ifdef DEBUG   #endif
 /* all_of  -  none_of  -  any_of  -  find_if */
 

@@ -62,8 +62,7 @@ void ReadMap() {
 		//	std::cin >> x_in; std::cin >> y_in;
 		//}
 		//dummy = findDummyptr(x_in, y_in);
-		dummy = findDummyptr(0, 0);
-		dummy->nodeType = start;
+		//dummy->nodeType = start;
 		//std::cout << "Insert coordinates of GOAL node: x y\n";
 		//std::cin >> x_in; std::cin >> y_in;
 		//while (x_in < 0 || x_in > img_mat.rows || y_in < 0 || y_in > img_mat.rows) {
@@ -72,8 +71,21 @@ void ReadMap() {
 		//	std::cin >> x_in; std::cin >> y_in;
 		//}
 		//dummy = findDummyptr(x_in, y_in);
-		dummy = findDummyptr(25, 85);
+		//dummy->nodeType = goal;
+
+
+
+		//std::vector<int> x_start = { 0, 0, 20};
+		//std::vector<int> y_start = { 0, 0, 20};
+		//dummy = findDummyptr(x_start[map_count], y_start[map_count]);
+		dummy = findDummyptr(10, 10);
+		dummy->nodeType = start;
+		//std::vector<int> x_goal  = { 25, 25, 25};
+		//std::vector<int> y_goal  = { 85, 85, 85};
+		//dummy = findDummyptr(x_goal[map_count], y_goal[map_count]);
+		dummy = findDummyptr(120, 180);
 		dummy->nodeType = goal;
+
 
 		std::cout << "*********************************************\n => RECEIVED NEW MAP: {" << map_count << "}\n";
 		successful_read = true;

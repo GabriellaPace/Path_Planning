@@ -21,6 +21,10 @@ public:
 	std::pair<float, float> key;
 
 	std::vector<Sptr_toNode> AdjacentsVect;	//all nodes adjacent to current one (const??)
+	#ifdef OPTIMIZE
+		bool AdjComputed = false;
+	#endif //OPTIMIZE
+
 	robin_hood::unordered_map < Sptr_toNode, int > parents;    //key: ptr to node, value: cumulative cost
 	//robin_hood::unordered_map < Sptr_toNode, std::vector<int> > parents;    //key: ptr to node, value: cumulative cost(s)
 

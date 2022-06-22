@@ -3,19 +3,9 @@
 
 std::vector<Sptr_toNode> solutionPaths;
 
+
 int main() {
-	/*
-	Node n('m', 1, 0, 10, any);
-	n.key.first = 30;
-	n.key.second = 20;
-	Node nS('M', 0, 0, 10, start);
-	nS.key.first = 30;
-	nS.key.second = 20;
-	if (n < nS)
-		std::cout << "OK (n < nS)\n";
-	else
-		std::cout << "WRONG (n > nS)\n";
-	*/
+	startTime = clock();
 
 	updateMap();
 
@@ -29,15 +19,16 @@ int main() {
 	}
 
 	//while (ptrToStart != ptrToGoal) {
-	while (map_count < 2) {
+	while (map_count < 3) {
 		if (successful_read) {
 			solutionPaths = generateMOPaths();
 			if (solutionPaths.empty()) {
 				std::cout << " => There are no avaliable paths for map {" << map_count << "}, waiting for any edge cost to change.\n\n";
 			}
 			else {
-				print_solution(solutionPaths);
+				//print_solution(solutionPaths);
 				save_solution_img(solutionPaths);
+				std::cout << " => Solution found.\n\n";
 			}
 		}
 		//sleep(5);
