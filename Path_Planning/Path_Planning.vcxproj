@@ -19,14 +19,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Image.cpp" />
     <ClCompile Include="MODLite.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\External Libraries\robin_hood.h" />
+    <ClInclude Include="..\External Libraries\tsl\robin_growth_policy.h" />
+    <ClInclude Include="..\External Libraries\tsl\robin_hash.h" />
+    <ClInclude Include="..\External Libraries\tsl\robin_map.h" />
+    <ClInclude Include="..\External Libraries\tsl\robin_set.h" />
     <ClInclude Include="ClassNode.h" />
     <ClInclude Include="Functions.h" />
     <ClInclude Include="Head.h" />
-    <ClInclude Include="Image.h" />
     <ClInclude Include="ReadMap.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

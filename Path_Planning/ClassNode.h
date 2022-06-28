@@ -99,16 +99,21 @@ public:
 
 
 
+
 class dummyNode {
 public:
-	//char Name; //debug
-	int X, Y;
+	//struct coordinates coord;
+	std::pair<int, int> coord;
+	//int X, Y;
 	int cost;
 	NodeTypes nodeType;
 
 /////////////////////////   Constructors   //////////////////////////
 	dummyNode() {}		// for pointers etc.
 
-	dummyNode(int x, int y, int ec, NodeTypes flag) // for actual nodes
-		: X(x), Y(y), cost(ec), nodeType(flag) {}
+	//dummyNode(int x, int y, int ec, NodeTypes flag) // for actual nodes
+	//	: X(x), Y(y), cost(ec), nodeType(flag) {}
+
+	dummyNode(int x, int y, int ec) // for actual nodes
+		: coord(x,y), cost(ec) {}
 };

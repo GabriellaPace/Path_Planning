@@ -1,12 +1,44 @@
 #pragma once
 #include "ClassNode.h"
-//include "Image.h"
 
 using Sptr_toNode  = std::shared_ptr<Node>;
 using Sptr_toDummy = std::shared_ptr<dummyNode>;
 
 std::vector<Sptr_toNode>  NodesVect;	// vector of shared pointers to Nodes (declaration and definition)
 std::vector<Sptr_toDummy> newMap;		// vector of shared pointers to dummyNodes
+
+// tsl::hopscotch_map if you don’t want to use too much memory,  tsl::robin_map if speed is what mainly matters
+/*		tsl::robin_map		*/
+struct hash_pair {
+	template <class T1, class T2>
+	size_t operator()(const std::pair<T1, T2>& p) const	{
+		auto hash1 = std::hash<T1>{}(p.first);
+		auto hash2 = std::hash<T2>{}(p.second);
+
+		if (hash1 != hash2) {
+			return hash1 ^ hash2;
+		}
+
+		return hash1;	// If hash1 == hash2, their XOR is zero.
+	}
+};
+
+
+bool operator < (const std::pair<int,int>&  pair1, const std::pair<int,int>&  pair2) {	//overwrite operator < for std::pair<int,int>
+	if (pair1.first < pair2.first)
+		return true;
+	else if (pair1.first > pair2.first)
+		return false;
+	else { // X == dc2.X
+		if (pair1.second < pair2.second)
+			return true;
+		else	// Y >= N2.Y
+			return false;
+	}
+};
+
+tsl::robin_map<std::pair<int, int>, Sptr_toDummy, hash_pair> newNodesMap;
+
 
 int map_count = 0;	// to change map in different iterations
 bool successful_read = false;
@@ -16,24 +48,9 @@ std::string img_path = "C:/Dev/Path_Planning/Maps/";
 
 /*------------------------------------------------------------------------------------------------------------------*/
 
-Sptr_toDummy findDummyptr(int xx, int yy) {    // find the pointer of the desired node in NodesVect (matching X and Y)
-	int x = xx;
-	int y = yy;
-	int idx;
-	auto it = find_if(newMap.begin(), newMap.end(),
-		[&x, &y](const Sptr_toDummy& obj) {return ((*obj).X == x && (*obj).Y == y); });
-	if (it != newMap.end()) {
-		idx = (int)std::distance(newMap.begin(), it);
-		return newMap[idx];
-	}
-	else {
-		return nullptr;
-	}
-}
-
-
 void ReadMap() {
-	newMap.clear();
+	//newMap.clear();
+	newNodesMap.clear();
 
 	cv::Mat img_mat = cv::imread((img_path + std::to_string(map_count) + "_gradient.bmp").c_str(), cv::IMREAD_GRAYSCALE);
 																		  // cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
@@ -48,7 +65,10 @@ void ReadMap() {
 				//bgrPixel.val[2] = pixelPtr[x*img_mat.cols*cn + y*cn + 2]; // R
 				pixelValue = static_cast<int>(img_mat.at<uchar>(x, y)); // gray
 
-				newMap.push_back(std::make_shared<dummyNode>(x, y, pixelValue, any));
+				//newMap.push_back(std::make_shared<dummyNode>(x, y, pixelValue, any));
+				//newNodesMap.insert({ Dummy_coord(x, y),		std::make_shared<dummyNode>(x, y, pixelValue, any) });
+				std::pair<int, int> coord(x, y);
+				newNodesMap[coord] =  std::make_shared<dummyNode>(x, y, pixelValue);
 			}
 		}
 
@@ -64,42 +84,33 @@ void ReadMap() {
 																						 << ", Ymax = " << img_mat.rows << "):\n";
 				std::cin >> x_in; std::cin >> y_in;
 			}
-			dummy = findDummyptr(x_in, y_in);
-			dummy->nodeType = start;
-			std::cout << "Insert coordinates of GOAL node: x y\n";
-			std::cin >> x_in; std::cin >> y_in;
-			while (x_in < 0 || x_in > img_mat.rows || y_in < 0 || y_in > img_mat.rows) {
-				std::cout << "Goal node coordinates are out of range, please insert new ones (Xmax = " << img_mat.rows
-					<< ", Ymax = " << img_mat.rows << "):\n";
-				std::cin >> x_in; std::cin >> y_in;
-			}
-			dummy = findDummyptr(x_in, y_in);
-			dummy->nodeType = goal;
+			//...
 		#endif // MANUAL
 
 		#ifndef MANUAL
-			//std::vector<int> x_start = { 0, 0, 20};
-			//std::vector<int> y_start = { 0, 0, 20};
-			//dummy = findDummyptr(x_start[map_count], y_start[map_count]);
-			dummy = findDummyptr(10, 10);
-			if (dummy == NULL) {
-				std::cout << "OUT OF RANGE!\n";
-				std::cout << img_mat.rows << "  x  " << img_mat.rows << std::endl;
+			//dummy = findDummyptr(10, 10);
+			//if (dummy == NULL) {
+			//	std::cout << "OUT OF RANGE!\n";
+			//	std::cout << img_mat.rows << "  x  " << img_mat.rows << std::endl;
+			//}
+			//dummy->nodeType = start;
+			//int x = 10, y = 10;
+			std::pair<int, int> coord(10, 10);
+			if ( newNodesMap.find(coord) != newNodesMap.end() ) {
+				newNodesMap[coord]->nodeType = start;
 			}
-			dummy->nodeType = start;
-			//std::vector<int> x_goal  = { 25, 25, 25};
-			//std::vector<int> y_goal  = { 85, 85, 85};
-			//dummy = findDummyptr(x_goal[map_count], y_goal[map_count]);
-			//dummy = findDummyptr(120, 180); //200x200
-			//dummy = findDummyptr(190, 220); //250x250
-			dummy = findDummyptr(200, 460); //500x500
-			if (dummy == NULL) {
-				std::cout << "OUT OF RANGE!\n";
-				std::cout << img_mat.rows << "  x  " << img_mat.rows << std::endl;
+			else {
+				std::cout << "OUT OF RANGE!\n" << img_mat.rows << "  x  " << img_mat.rows << std::endl;
 			}
-			dummy->nodeType = goal;
+			coord.first = 10; coord.second = 10;
+			//x = 200, y = 460;
+			if (newNodesMap.find(coord) != newNodesMap.end()) {
+				newNodesMap[coord]->nodeType = goal;
+			}
+			else {
+				std::cout << "OUT OF RANGE!\n" << img_mat.rows << "  x  " << img_mat.rows << std::endl;
+			}
 		#endif // !MANUAL
-
 
 		std::cout << "*********************************************\n => RECEIVED NEW MAP: {" << map_count << "}\n";
 		successful_read = true;

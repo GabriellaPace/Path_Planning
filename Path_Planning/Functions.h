@@ -1,6 +1,7 @@
 #pragma once
 #include "ReadMap.h"
 
+clock_t startTime;	//debug
 
 using set = std::set<Node, std::less<Node>, std::pmr::polymorphic_allocator<Node> >;	//by definition doesn't allow duplicates
 	//std::pmr::polymorphic_allocator = allows objects to behave as if they used different allocator types despite the identical static allocator type
@@ -11,8 +12,6 @@ set queue;	//filled with Nodes, NOT ptr_to_Nodes !!
 
 Sptr_toNode  ptrToStart = nullptr, ptrToGoal = nullptr;
 float k_m = 0;
-
-clock_t startTime;	//debug
 
 ////////////////////////////////////// Debug functions //////////////////////////////////////
 void print_queue() {
@@ -83,6 +82,7 @@ Sptr_toNode findNodeptr(int xx, int yy) {    // find the pointer of the desired 
 	int y = yy;
 	auto it = find_if(NodesVect.begin(), NodesVect.end(),
 			  [&x, &y](const Sptr_toNode& obj) {return ((*obj).X == x && (*obj).Y == y); });
+
 	if (it != NodesVect.end()) {
 		auto idx = std::distance(NodesVect.begin(), it);
 		return NodesVect[idx];
@@ -120,6 +120,7 @@ int compute_cost(Sptr_toNode n1, Sptr_toNode n2) {	// edge-cost derived from nod
 void addAdj(Sptr_toNode N, int oriz, int vert) {
 	auto it = find_if(NodesVect.begin(), NodesVect.end(), 
 			  [&oriz, &vert](const Sptr_toNode& obj) {return ((*obj).X == oriz && (*obj).Y == vert); });
+
 	if (it != NodesVect.end()) {
 		auto idx = std::distance(NodesVect.begin(), it);
 		N->AdjacentsVect.push_back(NodesVect[idx]);
@@ -434,14 +435,15 @@ void updateMap() {
 
 		for (auto d_ptr : newMap) {
 			if (map_count > 0) { //@@
-				N_inOld = findNodeptr(d_ptr->X, d_ptr->Y);
+				//N_inOld = findNodeptr(d_ptr->X, d_ptr->Y);
+				N_inOld = findNodeptr(d_ptr->coord.first, d_ptr->coord.second);
 			} //@@
 
 			if (N_inOld == nullptr	|| map_count==0) {	//Node not found //@@
 				//std::cout << " => coordinates [" << d_ptr->X << "," << d_ptr->Y << "] were not in the old map, so a new node will be created.\n"; //debug		
-				NodesVect.push_back(std::make_shared<Node>(d_ptr->X, d_ptr->Y, d_ptr->cost, d_ptr->nodeType));	//define new Node
+				NodesVect.push_back(std::make_shared<Node>(d_ptr->coord.first, d_ptr->coord.second, d_ptr->cost, d_ptr->nodeType));	//define new Node
 				if (map_count > 0) {
-					newNodes.push_back(findNodeptr(d_ptr->X, d_ptr->Y));	// used later to update adjacents (should always find it, it was just created!)
+					newNodes.push_back(findNodeptr(d_ptr->coord.first, d_ptr->coord.second));	// used later to update adjacents (should always find it, it was just created!)
 				}
 				nodes_changes = true;
 			}
@@ -465,11 +467,11 @@ void updateMap() {
 
 			if (nodes_changes) {
 				if (d_ptr->nodeType == start) {
-					ptrToStart = findNodeptr(d_ptr->X, d_ptr->Y);
+					ptrToStart = findNodeptr(d_ptr->coord.first, d_ptr->coord.second);
 					//vehicle_moved = true;
 				}
 				if (d_ptr->nodeType == goal) {
-					ptrToGoal = findNodeptr(d_ptr->X, d_ptr->Y);
+					ptrToGoal = findNodeptr(d_ptr->coord.first, d_ptr->coord.second);
 				}
 			}
 		}
@@ -506,7 +508,6 @@ void updateMap() {
 				computeMOPaths();	/*13*/
 			//}
 		}
-
 	}
 	if (map_count == 0) {
 		std::cout << " => UpdateMap() done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;

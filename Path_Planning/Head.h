@@ -6,8 +6,10 @@
 #include <deque>
 #include <set>	//used instead of queue(?)
 #include <vector>
+#include <algorithm> // std::sort
 #include <string> //maybe only for debug ?
-#include "robin_hood.h" //faster than <unordered_map>
+#include "../External Libraries/robin_hood.h" //faster than <unordered_map>
+#include "../External Libraries/tsl/robin_map.h"
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/mat.hpp>
