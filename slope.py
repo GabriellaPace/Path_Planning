@@ -22,7 +22,7 @@ out_image = np.zeros((height+2, width+2, 1), np.float32)
 sign = lambda a: (a>0) - (a<0)
 ridged = lambda a: 2*(0.5-abs(0.5-a))
 
-for sample in range(3):  #for sample in range(40):
+for sample in range(2):  #for sample in range(40):
   randBytes = os.urandom(3)
   rand1 = int.from_bytes(randBytes, byteorder='big')%100 #%1000
   randBytes = os.urandom(3)

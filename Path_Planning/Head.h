@@ -9,7 +9,7 @@
 #include <algorithm> // std::sort
 #include <string> //maybe only for debug ?
 #include "../External Libraries/robin_hood.h" //faster than <unordered_map>
-#include "../External Libraries/tsl/robin_map.h"
+#include "../External Libraries/tsl/robin_map.h" //faster than <map>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/mat.hpp>
@@ -18,7 +18,7 @@
 //#include <opencv2/ximgproc.hpp>
 #include <opencv2/highgui.hpp>
 
-#include <time.h> //clock
+#include <time.h> //clock - only for debug
 
 //#define DEBUG  //#ifdef DEBUG   #endif
 /* all_of  -  none_of  -  any_of  -  find_if */
@@ -31,8 +31,8 @@ enum domin_res {
 	areEqual = 4, nonDomination = 5
 };	//I could swap the arguments in the functions and avoid "snd_dominates", but this is more readable -> is it a problem?
 
-
-domin_res domination(float fst, float snd) {
+template<typename FI>	//to allow both <float> and <int> as input
+domin_res domination(const FI fst, const FI snd) {
 	if (fst < snd) {						//domination = smaller one
 		return fst_dominates;
 	}

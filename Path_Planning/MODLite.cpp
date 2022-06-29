@@ -5,21 +5,21 @@ std::vector<Sptr_toNode> solutionPaths;
 
 
 int main() {
-	startTime = clock();
+	startTime = clock();	//debug
 
 	updateMap();
 
 	if (successful_read) {
 		// function PLAN():
 			// function Initialize():
-		calculateKey(ptrToGoal);
-		queue.insert(*ptrToGoal);
+			calculateKey(ptrToGoal);
+			queue.insert(*ptrToGoal);
 
 		computeMOPaths();
 	}
 
 	//while (ptrToStart != ptrToGoal) {
-	while (map_count < 20) {
+	while (map_count < 10) {
 		if (successful_read) {
 			solutionPaths = generateMOPaths();
 			if (solutionPaths.empty()) {
@@ -32,7 +32,7 @@ int main() {
 			}
 		}
 		//sleep(5);
-		queue.clear();	//added by me -> maybe uselees (hopefully not wrong)
+		queue.clear();	//added by me -> maybe useless (hopefully not wrong)	§§
 
 		++map_count;
 		updateMap();
@@ -41,5 +41,4 @@ int main() {
 // end of function PLAN()
 
 	// DELETE ALL objects -> shared_ptr are automatically deleted when out of scope (??) -> so no need to do it manually 
-	//std::cin.get();
 }
