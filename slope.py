@@ -10,9 +10,11 @@ from mpl_toolkits.mplot3d import Axes3D
 import random
 import faulthandler
 
+
 faulthandler.enable()
 
 gui = False
+blur = False
 scale = 1
 #amplitude = 1
 cmap = cm.twilight  #for gui
@@ -22,7 +24,7 @@ out_image = np.zeros((height+2, width+2, 1), np.float32)
 sign = lambda a: (a>0) - (a<0)
 ridged = lambda a: 2*(0.5-abs(0.5-a))
 
-for sample in range(2):  #for sample in range(40):
+for sample in range(10):  #for sample in range(40):
   randBytes = os.urandom(3)
   rand1 = int.from_bytes(randBytes, byteorder='big')%100 #%1000
   randBytes = os.urandom(3)
@@ -49,8 +51,8 @@ for sample in range(2):  #for sample in range(40):
   out_image = cv2.GaussianBlur(out_image, (7,7), 0)
              # Sobel = calculate the derivatives from an image (to obtain the slope from the height?):
              # Sobel:(src,      ddepth,    dx, dy, dts, ksize,   scale,      delta, borderType) -> Any
-  sobelx = cv2.Sobel(out_image, cv2.CV_32F, 1, 0,       ksize=3, scale=0.25,        borderType=cv2.BORDER_ISOLATED)   
-  sobely = cv2.Sobel(out_image, cv2.CV_32F, 0, 1,       ksize=3, scale=0.25,        borderType=cv2.BORDER_ISOLATED)
+  sobelx = cv2.Sobel(out_image, cv2.CV_32F, 1, 0,       ksize=3, scale=0.22,        borderType=cv2.BORDER_ISOLATED)   #scale=0.25
+  sobely = cv2.Sobel(out_image, cv2.CV_32F, 0, 1,       ksize=3, scale=0.22,        borderType=cv2.BORDER_ISOLATED)   #scale=0.25
 
   gradient = np.sqrt(np.square(sobelx)+np.square(sobely))
   slope = np.degrees(np.arctan(gradient))
@@ -58,6 +60,11 @@ for sample in range(2):  #for sample in range(40):
   slope = np.clip(slope,0,15)/15
   slope = np.sqrt(slope)
   slope = np.uint8(slope*255)
+
+  if blur:
+    # Blurred image:
+    #img = cv2.imread(f"{path}/image.bmp")
+    blur_img = cv2.blur(~slope, (height//5,height//5))
 
   if gui:
     fig = plt.figure()
@@ -86,7 +93,16 @@ for sample in range(2):  #for sample in range(40):
     ax.imshow(slope, cmap=cmap)
     plt.tight_layout()
     plt.show()
+
+    plt.subplot(121),plt.imshow(img),plt.title('Original')
+    plt.xticks([]),  plt.yticks([])
+    plt.subplot(122),plt.imshow(blur),plt.title('Blurred')
+    plt.xticks([]),  plt.yticks([])
+    plt.show()
   
   path = "C:/Dev/Path_Planning/Maps"
   #cv2.imwrite(f"{path}/{sample}_dem.tiff", out_image)     # cv2.imwrite("%03d_dem.tiff"%sample, out_image)    # out_image = height map
   cv2.imwrite(f"{path}/{sample}_gradient.bmp", ~slope)    # cv2.imwrite("%03d_gradient.bmp"%sample, ~slope)
+
+  if blur:
+    cv2.imwrite(f"{path}/{sample}_gradient_BLUR.bmp", ~slope)

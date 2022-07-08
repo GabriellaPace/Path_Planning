@@ -19,7 +19,7 @@ int main() {
 	}
 
 	//while (ptrToStart != ptrToGoal) {
-	while (map_count < 10) {
+	while (map_count < 3) {
 		if (successful_read) {
 			solutionPaths = generateMOPaths();
 			if (solutionPaths.empty()) {

@@ -131,10 +131,13 @@ struct NDS_struct nonDom_succs(Sptr_toNode N) {				// find non-dominated success
 
 	for (auto adNi : N->AdjacentsVect) {		//for each element of AdjacentsVect, we'll check if it dominated every other element in the same List
 		nonDom_flag = true;
-		cC_out = compute_cost(N, adNi) + adNi->g;	
+		//cC_out = compute_cost(N, adNi) + adNi->g;					//original
+		cC_out = compute_cost(N, adNi) + adNi->g + heuristic(adNi);	//modified
 
 		for (auto adNj : N->AdjacentsVect) {		//paragona con ogni altro elemento di AdjacentsVect [anche con se stesso!!] -> problema? <============
-			cC_in = compute_cost(N, adNj) + adNj->g;
+			//cC_in = compute_cost(N, adNj) + adNj->g;					//original
+			cC_in = compute_cost(N, adNj) + adNj->g + heuristic(adNj);	//modified
+
 			if (domination(cC_out, cC_in) == snd_dominates) {		//it is dominated by someone-else!	//if (!nonDom_b(cC_out, cC_in))
 				nonDom_flag = false;
 				break;
@@ -147,20 +150,6 @@ struct NDS_struct nonDom_succs(Sptr_toNode N) {				// find non-dominated success
 		}
 	}
 
-
-
-	//if (NDS_sol.NDS_succs.size() > 3) {	//DEBUG @
-	//	std::cout << "\n -> more than 3 nonDomSuccs for ";  N->print_g_rhs();
-	//	for (auto nd : NDS_sol.NDS_succs) {
-	//		nd->print_g_rhs();
-	//	}
-	//	std::cout << "nonDom_rhs = " << NDS_sol.NDS_rhs << std::endl << std::endl;
-
-	//	//std::cout << "N key (" << N->key.first << " , " << N->key.second << ")\n";
-	//	//std::cout << "queue top: [" << (*queue.begin()).XY.first << "," << (*queue.begin()).XY.second << "] - key (" << (*queue.begin()).key.first << ", " << (*queue.begin()).key.second << ")\n";
-	//}
-
-
 	return NDS_sol;
 }
 
@@ -169,9 +158,6 @@ void update_rhs(Sptr_toNode N) {    //function UPDATE_VERTEX(u)
 	if (N->nodeType != goal) {
 		N->rhs = nonDom_succs(N).NDS_rhs;
 	}
-
-	//if(N->XY.first == 16 && N->XY.second == 257)	//DEBUG
-	//	std::cout<< "*";
 
 	if (queue.find(*N) != queue.end()) {	// if N is in the queue, remove it
 		queue.erase(*N);
@@ -225,17 +211,8 @@ void computeMOPaths() {  //function COMPUTE_MO_PATHS()
 
 	calculateKey(ptrToStart);
 
-	if (!queue.empty()) {	//@ DEBUG
-		for (auto N : queue) {
-			if ( (!(*ptrToStart < N))	>	start_doesNot_dominate(N) ) {
-				std::cout << "PROBLEM with start_doesNot_dominate()!!!\n";
-				std::cout << "   " << (!(*ptrToStart < N)) << "  -  " << start_doesNot_dominate(N) << std::endl;
-				std::cout << "Start key = ";	ptrToStart->print_NodeKey();
-				std::cout << "Node key  = ";	N.print_NodeKey();
-				std::cout << std::endl;
-			}
-		}	
-	}
+	//std::vector<Sptr_toNode> updatedAdj;	//debug @@
+	//int again = 0;	//debug @@
 
 	while ( !queue.empty()	&&	start_doesNot_dominate(*(queue.begin())) ) {	//termination criteria = start.key dominates the top key in the queue	
 		auto queue_top = queue.begin();
@@ -247,17 +224,19 @@ void computeMOPaths() {  //function COMPUTE_MO_PATHS()
 		calculateKey(deqN_ptr);
 
 
-		//if (deqN_ptr->XY.first == 16 && deqN_ptr->XY.second == 257)	//DEBUG
-		//	std::cout << "%";
-
-
-		if (deqN_wOldKey < *deqN_ptr) {		//put it back in queue with new key  ->  when does this happen??? §§
+		if (deqN_wOldKey < *deqN_ptr) {		//put it back in queue with new key  ->  when does this happen??? §§ -> seems never
 			queue.insert(*deqN_ptr);
 		}
 		//else if (domination(deqN_ptr->rhs, deqN_ptr->g) == fst_completely_dominates) {
 		else if ( domination(deqN_ptr->rhs, deqN_ptr->g) == fst_dominates ) {		 // OVERCONSISTENT (rhs<g)
 			(*deqN_ptr).g = (*deqN_ptr).rhs;
-			updateAdjacents(deqN_ptr);
+			updateAdjacents(deqN_ptr);	//HERE <- <- <-
+
+			//if (find(updatedAdj.begin(), updatedAdj.end(), deqN_ptr) == updatedAdj.end())	//DEBUG @@
+			//	updatedAdj.push_back(deqN_ptr);
+			//else
+			//	++again;	//@@
+
 		}
 		//else if (domination(deqN_ptr->rhs, deqN_ptr->g) == snd_completely_dominates) {
 		else if ( domination(deqN_ptr->rhs, deqN_ptr->g) == snd_dominates ) {		// UNDERCONSISTENT (rhs>g)
@@ -273,6 +252,7 @@ void computeMOPaths() {  //function COMPUTE_MO_PATHS()
 		calculateKey(ptrToStart); //for next loop (needed??)
 	}
 	std::cout << " => Computed MO Paths, done in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;
+	//std::cout << "      multiple updates done  " << +again << "  times" << std::endl;
 }
 
 
@@ -389,8 +369,8 @@ std::vector<Sptr_toNode> generateMOPaths() {	//function GENERATE_MO_PATHS()
 		solutionPaths.push_back(parent_toPush);
 		// ^ (*)
 
-		//if (parent_toPush == NULL)
-		//	std::cout << "ERROR in parent_toPush\n";
+		if (parent_toPush == NULL)	//debug -> should NEVER happen
+			std::cout << "ERROR in parent_toPush\n";
 
 		N = parent_toPush;	//for next iteration
 	}
@@ -500,7 +480,10 @@ void updateMap() {
 
 	}
 
+	newMap.clear();
+
+
 	if (map_count == 0) { //debug
-		std::cout << " => UpdateMap() done in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl; //debug
+		std::cout << " => Updated Map, done in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl; //debug
 	}
 }
