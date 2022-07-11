@@ -6,6 +6,7 @@
 
 int main() {
 	startTime = clock();	//debug
+	startTime_whole = clock();	//debug
 
 	updateMap();
 
@@ -18,8 +19,8 @@ int main() {
 		computeMOPaths();
 	}
 
-	//while (ptrToStart != ptrToGoal) {
-	while (map_count < 100) {
+	while (ptrToStart != ptrToGoal) {
+	//while (map_count < 100) {
 		if (successful_read) {
 			solutionPaths = generateMOPaths();
 			if (solutionPaths.empty()) {
@@ -28,13 +29,15 @@ int main() {
 			else {
 				//print_solution(solutionPaths);
 				save_solution_img(solutionPaths);
-				std::cout << "\n => Solution found.\n\n";
+				std::cout << "\n => Solution found.\n";
+				std::cout << "    Total cycle time: " << double(clock() - startTime_whole)/(double)CLOCKS_PER_SEC << " s.\n\n";
 			}
 		}
 		//sleep(5);
 		queue.clear();	//added by me -> maybe useless (hopefully not wrong)	§§
 
 		++map_count;
+		startTime_whole = clock();	//debug
 		updateMap();
 	}
 	std::cout << " => GOAL REACHED. Exiting.\n\n";

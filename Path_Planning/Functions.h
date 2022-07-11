@@ -1,7 +1,7 @@
 #pragma once
 #include "ReadMap.h"
 
-clock_t startTime;	//debug
+clock_t startTime, startTime_whole;	//debug
 
 using set = std::set<Node, std::less<Node>, std::pmr::polymorphic_allocator<Node> >;	//by definition doesn't allow duplicates
 	//std::pmr::polymorphic_allocator = allows objects to behave as if they used different allocator types despite the identical static allocator type
@@ -59,14 +59,22 @@ void print_solution(std::vector<Sptr_toNode> solution_vect) {
 }
 
 void save_solution_img(std::vector<Sptr_toNode> solution_vect) {
-	cv::Mat img_mat = cv::imread((img_path + std::to_string(map_count) + "_gradient.bmp").c_str(), cv::IMREAD_GRAYSCALE);		//ReadMap() x100
-	//cv::Mat img_mat = cv::imread((img_path + std::to_string(map_count) + "_image_SOL.bmp").c_str(), cv::IMREAD_GRAYSCALE);		//ReadMap() focus
+	#ifdef BLUR_MAP
+		cv::Mat img_mat = cv::imread((img_path + std::to_string(map_count) + "_image_SOL.bmp").c_str(), cv::IMREAD_GRAYSCALE);		//ReadMap() focus
+	#else
+		cv::Mat img_mat = cv::imread((img_path + std::to_string(map_count) + "_gradient.bmp").c_str(), cv::IMREAD_GRAYSCALE);		//ReadMap() x100
+	#endif // BLUR_MAP	
 	
 	for (auto ptr : solution_vect) {
 		img_mat.at<uchar>(ptr->XY.first, ptr->XY.second) = 0;
 	}
-	cv::imwrite((img_path + std::to_string(map_count) + "_gradient_SOL.bmp").c_str(), img_mat);		//ReadMap() x100
-	//cv::imwrite((img_path + std::to_string(map_count) + "_image_SOL.bmp").c_str(), img_mat);			//ReadMap() focus
+
+
+	#ifdef BLUR_MAP
+		cv::imwrite((img_path + std::to_string(map_count) + "_image_SOL.bmp").c_str(), img_mat);			//ReadMap() focus
+	#else
+		cv::imwrite((img_path + std::to_string(map_count) + "_gradient_SOL.bmp").c_str(), img_mat);		//ReadMap() x100
+	#endif // BLUR_MAP	
 }
 
 ///////////////////////////////////////// Functions /////////////////////////////////////////
@@ -251,7 +259,7 @@ void computeMOPaths() {  //function COMPUTE_MO_PATHS()
 
 		calculateKey(ptrToStart); //for next loop (needed??)
 	}
-	std::cout << " => Computed MO Paths, done in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;
+	std::cout << "  - Computed MO Paths, done in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;
 	//std::cout << "      multiple updates done  " << +again << "  times" << std::endl;
 }
 
@@ -370,13 +378,13 @@ std::vector<Sptr_toNode> generateMOPaths() {	//function GENERATE_MO_PATHS()
 		// ^ (*)
 
 		if (parent_toPush == NULL)	//debug -> should NEVER happen
-			std::cout << "ERROR in parent_toPush\n";
+			std::cout << "  ERROR in parent_toPush\n";
 
 		N = parent_toPush;	//for next iteration
 	}
 	std::reverse(solutionPaths.begin(), solutionPaths.end());	//to have it from start to goal
 
-	std::cout << " => Generated MO Paths, done in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;	//debug
+	std::cout << "  - Generated MO Paths, done in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;	//debug
 	return solutionPaths;
 }
 
@@ -430,7 +438,7 @@ void updateMap() {
 				}
 			}
 		}
-		std::cout << "    updated nodes in NodesVect in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;
+		//std::cout << "    updated nodes in NodesVect in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;
 
 		// once we finished updating the map:
 		if (nodes_changes) {
@@ -451,7 +459,7 @@ void updateMap() {
 					std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
 				}
 
-				std::cout << " => UpdateMap() done in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl; //debug
+				std::cout << "  - UpdateMap() done in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl; //debug
 				computeMOPaths();	/*13*/
 			}
 		}
@@ -462,6 +470,6 @@ void updateMap() {
 
 
 	if (map_count == 0) { //debug
-		std::cout << " => Updated Map, done in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl; //debug
+		std::cout << "  - Updated Map, done in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl; //debug
 	}
 }

@@ -3,93 +3,78 @@
 
 std::vector<Sptr_toNode> solutionPaths;
 
-std::string img_path = "C:/Dev/Path_Planning/Maps/";
+std::string img_path = "C:/Dev/Path_Planning/Maps/blur-4/";
 int map_count = 0;	// to change map in different iterations
 bool successful_read = false;
+#define BLUR_MAP
 //#define MANUAL	//to manually insert the XYinates of start and goal each time
 
 
-/*focused map*/
-//void ReadMap() {
-//	newMap.clear();
-//
-//	cv::Mat img_mat, img_focus;
-//	std::pair<int, int> coord;
-//
-//
-//	if (map_count == 0) {
-//		img_mat = cv::imread((img_path + "image_blurred.bmp").c_str(), cv::IMREAD_GRAYSCALE);
-//
-//		if (!img_mat.empty()) {
-//			int pixelValue;
-//			for (int x = 0; x < img_mat.rows; ++x) {
-//				for (int y = 0; y < img_mat.cols; ++y) {
-//					coord = { x, y };
-//					pixelValue = static_cast<int>(img_mat.at<uchar>(x, y)); // gray
-//
-//					newMap[coord] = std::make_shared<dummyNode>(coord, pixelValue);
-//				}
-//			}
-//		}
-//
-//
-//		coord = { 10, 10 };
-//		if (newMap.find(coord) != newMap.end()) {
-//			newMap[coord]->nodeType = start;
-//		}
-//		else {
-//			std::cout << "OUT OF RANGE!\n" << img_mat.rows << "  x  " << img_mat.cols << std::endl;
-//		}
-//
-//		coord = { 420, 480 };							//FIXED GOAL
-//		if (newMap.find(coord) != newMap.end()) {
-//			newMap[coord]->nodeType = goal;
-//		}
-//		else {
-//			std::cout << "OUT OF RANGE!\n" << img_mat.rows << "  x  " << img_mat.cols << std::endl;
-//		}
-//
-//	}
-//	else {
-//		std::pair<int, int> new_start;
-//		if(solutionPaths.size() > 9)
-//			new_start = solutionPaths[10]->XY;		//walk 10 nodes each time
-//		else
-//			new_start = solutionPaths.back()->XY;	//pick last item
-//
-//		if (newMap.find(new_start) != newMap.end())
-//			newMap[new_start]->nodeType = start;
-//		else
-//			std::cout << "OUT OF RANGE!\n" << img_mat.rows << "  x  " << img_mat.rows << std::endl;
-//
-//
-//		img_focus = cv::imread((img_path + "image_focus.bmp").c_str(), cv::IMREAD_GRAYSCALE);
-//		if (!img_focus.empty()) {
-//			int pixelValue;
-//			for (int     x = new_start.first-10;  x < new_start.first+10;  ++x) {				//reading in a 20x20 square around the rover position
-//				for (int y = new_start.second-10; y < new_start.second+10; ++y) {
-//					if (x > 0 && x < img_focus.rows   &&   y>0 && y < img_focus.cols) {		//check feasibility
-//						coord = {x, y};
-//						pixelValue = static_cast<int>(img_mat.at<uchar>(x, y)); // gray
-//
-//						img_mat.at<uchar>(x, y) = pixelValue;
-//						newMap[coord] = std::make_shared<dummyNode>(coord, pixelValue);
-//					}
-//				}
-//			}
-//		}
-//	}
-//
-//	
-//	cv::imwrite((img_path + std::to_string(map_count) + "_image_SOL.bmp").c_str(), img_mat);	//then it will be over-written
-//
-//	std::cout << "*********************************************\n => RECEIVED NEW MAP: {" << map_count << "}\n";
-//	successful_read = true;
-//}
+#ifdef BLUR_MAP	/*focused map*/
+void ReadMap() {
+	newMap.clear();
+
+	cv::Mat img_mat, img_focus;
+	std::pair<int, int> start_coord, coord;
+	std::pair<int, int> goal_coord = {420, 480};	//FIXED
+
+	img_mat = cv::imread((img_path + "image_blurred.bmp").c_str(), cv::IMREAD_GRAYSCALE);
+	if (!img_mat.empty()) {
+		if (map_count == 0) {
+			int pixelValue;
+			for (int x = 0; x < img_mat.rows; ++x) {
+				for (int y = 0; y < img_mat.cols; ++y) {
+					coord = { x, y };
+					pixelValue = static_cast<int>(img_mat.at<uchar>(x, y) * 255); // gray
+					newMap[coord] = std::make_shared<dummyNode>(coord, pixelValue);
+				}
+			}
+
+			start_coord = { 10, 10 };
+		}
+		else {
+			if (solutionPaths.size() >= 50)
+				start_coord = solutionPaths[50]->XY;		//walk 10 nodes each time
+			else
+				start_coord = solutionPaths.back()->XY;		//pick last item
+		}
+
+		img_focus = cv::imread((img_path + "image_focus.bmp").c_str(), cv::IMREAD_GRAYSCALE);
+		if (!img_focus.empty()) {
+			int pixelValue;
+			for (int x = (start_coord.first - 50); x < (start_coord.first + 50); ++x) {				//reading in a 20x20 square around the rover position
+				for (int y = start_coord.second - 50; y < start_coord.second + 50; ++y) {
+					if (x > 0 && x < img_focus.rows   &&   y>0 && y < img_focus.cols) {		//check feasibility
+						coord = { x, y };
+						pixelValue = static_cast<int>(img_focus.at<uchar>(x, y) * 255); // gray
+						newMap[coord] = std::make_shared<dummyNode>(coord, pixelValue);
+
+						img_mat.at<uchar>(x, y) = pixelValue / 255;	//needed just for graphics
+					}
+				}
+			}
+			successful_read = true;
+		}
+		else {
+			std::cout << "    error in focus for Map : {" << map_count << "}\n";
+		}
 
 
 
-/*100 - 500x500 maps*/
+		if (newMap.find(start_coord) != newMap.end())
+			newMap[start_coord]->nodeType = start;
+		else
+			std::cout << "OUT OF RANGE!\n" << img_mat.rows << "  x  " << img_mat.rows << std::endl;
+
+
+		if (newMap.find(goal_coord) != newMap.end())
+			newMap[goal_coord]->nodeType = goal;		//FIXED GOAL
+
+		cv::imwrite((img_path + std::to_string(map_count) + "_image_SOL.bmp").c_str(), img_mat);	//then it will be over-written (again just graphics)
+	}
+	std::cout << "*********************************************\n => MAP UPDATE N.{" << map_count << "}\n";
+}
+#else	/*100 - 500x500 maps*/
 void ReadMap() {
 	newMap.clear();
 
@@ -157,6 +142,8 @@ void ReadMap() {
 		successful_read = false;
 	}
 }
+#endif // BLUR_MAP
+
 
 //Node insertion by hand (no .bmp) (ReadMap())
 /*
