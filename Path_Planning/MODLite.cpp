@@ -1,7 +1,7 @@
 #include "Functions.h"
 
 
-std::vector<Sptr_toNode> solutionPaths;
+//std::vector<Sptr_toNode> solutionPaths;
 
 
 int main() {
@@ -19,7 +19,7 @@ int main() {
 	}
 
 	//while (ptrToStart != ptrToGoal) {
-	while (map_count < 3) {
+	while (map_count < 100) {
 		if (successful_read) {
 			solutionPaths = generateMOPaths();
 			if (solutionPaths.empty()) {

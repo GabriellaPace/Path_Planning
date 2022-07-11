@@ -59,12 +59,14 @@ void print_solution(std::vector<Sptr_toNode> solution_vect) {
 }
 
 void save_solution_img(std::vector<Sptr_toNode> solution_vect) {
-	cv::Mat img_mat = cv::imread((img_path + std::to_string(map_count) + "_gradient.bmp").c_str(), cv::IMREAD_GRAYSCALE);
+	cv::Mat img_mat = cv::imread((img_path + std::to_string(map_count) + "_gradient.bmp").c_str(), cv::IMREAD_GRAYSCALE);		//ReadMap() x100
+	//cv::Mat img_mat = cv::imread((img_path + std::to_string(map_count) + "_image_SOL.bmp").c_str(), cv::IMREAD_GRAYSCALE);		//ReadMap() focus
 	
 	for (auto ptr : solution_vect) {
 		img_mat.at<uchar>(ptr->XY.first, ptr->XY.second) = 0;
 	}
-	cv::imwrite((img_path + std::to_string(map_count) + "_gradient_SOL.bmp").c_str(), img_mat);
+	cv::imwrite((img_path + std::to_string(map_count) + "_gradient_SOL.bmp").c_str(), img_mat);		//ReadMap() x100
+	//cv::imwrite((img_path + std::to_string(map_count) + "_image_SOL.bmp").c_str(), img_mat);			//ReadMap() focus
 }
 
 ///////////////////////////////////////// Functions /////////////////////////////////////////
@@ -131,12 +133,10 @@ struct NDS_struct nonDom_succs(Sptr_toNode N) {				// find non-dominated success
 
 	for (auto adNi : N->AdjacentsVect) {		//for each element of AdjacentsVect, we'll check if it dominated every other element in the same List
 		nonDom_flag = true;
-		//cC_out = compute_cost(N, adNi) + adNi->g;					//original
-		cC_out = compute_cost(N, adNi) + adNi->g + heuristic(adNi);	//modified
+		cC_out = compute_cost(N, adNi) + adNi->g;
 
 		for (auto adNj : N->AdjacentsVect) {		//paragona con ogni altro elemento di AdjacentsVect [anche con se stesso!!] -> problema? <============
-			//cC_in = compute_cost(N, adNj) + adNj->g;					//original
-			cC_in = compute_cost(N, adNj) + adNj->g + heuristic(adNj);	//modified
+			cC_in = compute_cost(N, adNj) + adNj->g;
 
 			if (domination(cC_out, cC_in) == snd_dominates) {		//it is dominated by someone-else!	//if (!nonDom_b(cC_out, cC_in))
 				nonDom_flag = false;
