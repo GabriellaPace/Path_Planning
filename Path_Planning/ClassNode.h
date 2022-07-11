@@ -1,7 +1,5 @@
 #pragma once
 #include "Head.h"
-//#define OPTIMIZE
-//NOT "OPTIMIE" = find all the adjacents in the first run: much more expensive in the first map, but very light on the others if the map doesn't increase size too much
 
 enum NodeTypes {
 	start = 0, any = 1, goal = 2
@@ -21,9 +19,6 @@ public:
 	std::pair<float, float> key;
 
 	std::vector<Sptr_toNode> AdjacentsVect;	//all nodes adjacent to current one (const??)
-	#ifdef OPTIMIZE
-		bool AdjComputed = false;
-	#endif //OPTIMIZE
 
 	robin_hood::unordered_map < Sptr_toNode, int > parents;    //key: ptr to node, value: cumulative cost
 	//robin_hood::unordered_map < Sptr_toNode, std::vector<int> > parents;    //key: ptr to node, value: cumulative cost(s)

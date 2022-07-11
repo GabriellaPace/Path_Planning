@@ -400,9 +400,7 @@ void updateMap() {
 			if (N_inOld == nullptr) {	//Node not found
 				//std::cout << " => coordinates [" << d_ptr->X << "," << d_ptr->Y << "] were not in the old map, so a new node will be created.\n"; //debug	
 				allNodes[d_coord] = std::make_shared<Node>(d_coord, d_ptr->cost, d_ptr->nodeType);	//define new Node
-				//if (map_count > 0) {	//<- #ifdef OPTIMIZE
 				newNodes.push_back(allNodes[d_coord]);	// used later to update adjacents (should always find it, it was just created!)
-				//}
 				nodes_changes = true;
 			}
 			else {						//Node found
@@ -435,48 +433,28 @@ void updateMap() {
 		std::cout << "    updated nodes in NodesVect in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;
 
 		// once we finished updating the map:
-		#ifdef OPTIMIZE
-			if (nodes_changes	&&	map_count > 0) {	//@@
-					for (auto newN : newNodes) {	//fill adjacents to each node
-						for (auto ad_newN : newN->AdjacentsVect)	//@@ TO BE OPTIMIZED
-							addAdj(ad_newN, newN->XY);	//adding the new node as adjacents to his adjacents
-					}	//@@
-
-					if (vehicle_moved) {	//start node has changed	
-						k_m += heuristic(ptrToGoal);
-						std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
-					}
-
-					std::cout << " => UpdateMap() done at  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl;
-					computeMOPaths();	/*13*/
-				//}
-			}
-		#endif
-
-		#ifndef OPTIMIZE	
-			if (nodes_changes) {
-				for (auto newN : newNodes) {	//fill adjacents to each node
-					findAdjacents(newN);
+		if (nodes_changes) {
+			for (auto newN : newNodes) {	//fill adjacents to each node
+				findAdjacents(newN);
 				
-					if (map_count > 0) {	//map_count=0 is the first reading
-						for (auto ad_newN : newN->AdjacentsVect)
-							addAdj(ad_newN, newN->XY);	//adding the new node as adjacents to his adjacents
-					}
-				} //(can't be done in constructor because not all nodes have been registered yet)
-				//the nodes are only added, if a node becomes unavaliable it remains in the list but with cost = inf
-
-
-				if (map_count > 0) {		//map_count=0 is the first reading
-					if (vehicle_moved) {	//start node has changed	
-						k_m += heuristic(ptrToGoal);
-						std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
-					}
-
-					std::cout << " => UpdateMap() done in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl; //debug
-					computeMOPaths();	/*13*/
+				if (map_count > 0) {	//map_count=0 is the first reading
+					for (auto ad_newN : newN->AdjacentsVect)
+						addAdj(ad_newN, newN->XY);	//adding the new node as adjacents to his adjacents
 				}
+			} //(can't be done in constructor because not all nodes have been registered yet)
+			//the nodes are only added, if a node becomes unavaliable it remains in the list but with cost = inf
+
+
+			if (map_count > 0) {		//map_count=0 is the first reading
+				if (vehicle_moved) {	//start node has changed	
+					k_m += heuristic(ptrToGoal);
+					std::cout << " => Vehicle moved (changed start node) -> new k_m=" << k_m << " .\n\n";
+				}
+
+				std::cout << " => UpdateMap() done in  " << double(clock() - startTime) / (double)CLOCKS_PER_SEC << " s." << std::endl; //debug
+				computeMOPaths();	/*13*/
 			}
-		#endif
+		}
 
 	}
 
