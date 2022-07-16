@@ -2,10 +2,10 @@
 #include "ClassNode.h"
 
 std::vector<Sptr_toNode> solutionPaths;
-
-std::string img_path = "C:/Dev/Path_Planning/Maps/blur-4/";
+std::string img_path = "C:/Dev/Path_Planning/Maps/";
 int map_count = 0;	// to change map in different iterations
 bool successful_read = false;
+
 #define BLUR_MAP
 //#define MANUAL	//to manually insert the XYinates of start and goal each time
 
@@ -21,12 +21,15 @@ void ReadMap() {
 	img_mat = cv::imread((img_path + "image_blurred.bmp").c_str(), cv::IMREAD_GRAYSCALE);
 	if (!img_mat.empty()) {
 		if (map_count == 0) {
-			int pixelValue;
+			//int pixelValue;
+			flt_vect pixelValue;
 			for (int x = 0; x < img_mat.rows; ++x) {
 				for (int y = 0; y < img_mat.cols; ++y) {
 					coord = { x, y };
-					pixelValue = static_cast<int>(img_mat.at<uchar>(x, y) * 255); // gray
+					//pixelValue = static_cast<float>(img_mat.at<uchar>(x, y) * 255); // gray
+					pixelValue.push_back( (float)(img_mat.at<uchar>(x, y) * 255) ); // gray
 					newMap[coord] = std::make_shared<dummyNode>(coord, pixelValue);
+					pixelValue.clear();
 				}
 			}
 
@@ -41,15 +44,19 @@ void ReadMap() {
 
 		img_focus = cv::imread((img_path + "image_focus.bmp").c_str(), cv::IMREAD_GRAYSCALE);
 		if (!img_focus.empty()) {
-			int pixelValue;
+			//int pixelValue;
+			flt_vect pixelValue;
 			for (int x = (start_coord.first - 50); x < (start_coord.first + 50); ++x) {				//reading in a 20x20 square around the rover position
 				for (int y = start_coord.second - 50; y < start_coord.second + 50; ++y) {
 					if (x > 0 && x < img_focus.rows   &&   y>0 && y < img_focus.cols) {		//check feasibility
 						coord = { x, y };
-						pixelValue = static_cast<int>(img_focus.at<uchar>(x, y) * 255); // gray
+						//pixelValue[0] = static_cast<float>(img_focus.at<uchar>(x, y) * 255); // gray
+						pixelValue.push_back( (float)(img_mat.at<uchar>(x, y) * 255) ); // gray
 						newMap[coord] = std::make_shared<dummyNode>(coord, pixelValue);
 
-						img_mat.at<uchar>(x, y) = pixelValue / 255;	//needed just for graphics
+						img_mat.at<uchar>(x, y) = (int)pixelValue.front() / 255;	//needed just for graphics
+						pixelValue.clear();
+
 					}
 				}
 			}
