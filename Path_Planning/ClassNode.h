@@ -62,6 +62,8 @@ public:
 	std::pair<float, float> key;
 	std::vector<Sptr_toNode> AdjacentsVect;	//all nodes adjacent to current one (const??)
 
+	bool expanded = false;
+
 ////////////////////////////////////   Constructors   /////////////////////////////////
 	Node() {}		// for pointers etc.
 
@@ -143,7 +145,6 @@ public:
 class dummyNode {
 public:
 	std::pair<int, int> XY;
-	//int cost;
 	flt_vect cost;
 	NodeTypes nodeType = any;	//default: generic node
 

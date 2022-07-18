@@ -16,7 +16,12 @@ void ReadMap() {
 
 	cv::Mat img_mat, img_focus;
 	std::pair<int, int> start_coord, coord;
-	std::pair<int, int> goal_coord = {420, 480};	//FIXED
+	std::pair<int, int> goal_coord = { 420, 40 }; //{420, 480};	//FIXED
+
+	//float x0=0;	//original
+	//float x1=255;	//original
+	float y0=10;//new
+	float y1=11;//new
 
 	img_mat = cv::imread((img_path + "image_blurred.bmp").c_str(), cv::IMREAD_GRAYSCALE);
 	if (!img_mat.empty()) {
@@ -26,8 +31,11 @@ void ReadMap() {
 			for (int x = 0; x < img_mat.rows; ++x) {
 				for (int y = 0; y < img_mat.cols; ++y) {
 					coord = { x, y };
-					//pixelValue = static_cast<float>(img_mat.at<uchar>(x, y) * 255); // gray
-					pixelValue.push_back( (float)(img_mat.at<uchar>(x, y) * 255) ); // gray
+					//pixelValue.push_back( (float)(img_mat.at<uchar>(x, y) * tune) ); // gray
+					/*linear interpolation    yp = y0 + ((y1-y0)/(x1-x0)) * (xp - x0)  */		//x0=0, x1=255
+					pixelValue.push_back( y0 + ((y1 - y0) / 255) * (float)(img_mat.at<uchar>(x, y)) );
+					//pixelValue.push_back( y0 + ((y1 - y0) / 255) * (float)(img_mat.at<uchar>(x, y)) );	//second cost
+ 
 					newMap[coord] = std::make_shared<dummyNode>(coord, pixelValue);
 					pixelValue.clear();
 				}
@@ -50,11 +58,14 @@ void ReadMap() {
 				for (int y = start_coord.second - 50; y < start_coord.second + 50; ++y) {
 					if (x > 0 && x < img_focus.rows   &&   y>0 && y < img_focus.cols) {		//check feasibility
 						coord = { x, y };
-						//pixelValue[0] = static_cast<float>(img_focus.at<uchar>(x, y) * 255); // gray
-						pixelValue.push_back( (float)(img_mat.at<uchar>(x, y) * 255) ); // gray
+						//pixelValue.push_back( (float)(img_focus.at<uchar>(x, y) * tune) ); // gray
+						/*linear interpolation*/
+						pixelValue.push_back (y0 + ((y1 - y0) / 255) * (float)(img_focus.at<uchar>(x, y)) );
+						//pixelValue.push_back( y0 + ((y1 - y0) / 255) * (float)(img_focus.at<uchar>(x, y)) );	//second cost
+
 						newMap[coord] = std::make_shared<dummyNode>(coord, pixelValue);
 
-						img_mat.at<uchar>(x, y) = (int)pixelValue.front() / 255;	//needed just for graphics
+						img_mat.at<uchar>(x, y) = img_focus.at<uchar>(x, y);	//needed just for graphics
 						pixelValue.clear();
 
 					}

@@ -1,9 +1,6 @@
 #include "Functions.h"
 
 
-//std::vector<Sptr_toNode> solutionPaths;
-
-
 int main() {
 	startTime = clock();	//debug
 	startTime_whole = clock();	//debug
@@ -27,7 +24,6 @@ int main() {
 				std::cout << " => There are no avaliable paths for map {" << map_count << "}, waiting for any edge cost to change.\n\n";
 			}
 			else {
-				//print_solution(solutionPaths);
 				save_solution_img(solutionPaths);
 				std::cout << "\n => Solution found.\n";
 				std::cout << "    Total cycle time: " << double(clock() - startTime_whole)/(double)CLOCKS_PER_SEC << " s.\n\n";
